@@ -1,7 +1,10 @@
-var log = require("log4js")
 var _ = require("underscore")
 var data = require("../test/data")
+var uuid = require("uuid");
 
+
+Logger.useDefaults();
+Logger.info("OMG! Check this window out!", window);
 class Formflow {
     constructor(){
 
@@ -14,14 +17,14 @@ class Formflow {
     static defaultMetaOptions(){
         return {
             weight:Formflow.NORMAL,
-            id:Formflow.uuid(),
+            id:uuid(),
             index:Formflow.INDEXSTART
         }
     }
 
     setData(){
         data.forEach(function(val){
-            _.extend(val,)
+            _.extend(val,Formflow.defaultMetaOptions())
         })
     }
 }
@@ -37,6 +40,8 @@ Formflow.HEAVEYER = 2
 Formflow.INDEXSTART = 0
 
 Formflow.defaultOptions = {
-    layout:[1,2,4]
+    layout:[1,2,4] // layout cols contains 1,2,4 three
 }
 
+let test = new Formflow()
+test.setData(data)
