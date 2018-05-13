@@ -1,10 +1,12 @@
+if(module.hot)
+    module.hot.accept();
 var _ = require("underscore")
 var data = require("../test/data")
 var uuid = require("uuid");
-
-
+var Logger = require("js-logger")
 Logger.useDefaults();
-Logger.info("OMG! Check this window out!", window);
+//Logger.info("OMG! Check this window out!");
+console.log(11112211113)
 class Formflow {
     constructor(){
 
