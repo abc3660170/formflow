@@ -1,11 +1,11 @@
 const path = require("path");
 const webpack = require('webpack');
 const webpackConcatPlugin = require("./plugins/webpack-concat-plugin")
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 module.exports = {
     entry: {
-        'bundle.js': [
-            path.resolve(__dirname, 'index.js')
-        ]
+        bundle: path.resolve(__dirname, 'index.js')
     },
     output:{
         filename:"bundle.js",
@@ -15,18 +15,21 @@ module.exports = {
         fs: "empty"
     },
     target:"web",
+    devServer: {
+        contentBase: './'
+    },
     plugins:[
-        new webpackConcatPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
-        new webpack.NamedModulesPlugin()
+       // new webpackConcatPlugin(),
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            title: 'Hot Module Replacement',
+            template: 'demo/index.html'
+        }),
+        new webpack.NamedModulesPlugin(),
+        new webpack.HotModuleReplacementPlugin()
     ],
     externals: {
-        'js-logger':'Logger'
-    },
-    devServer: {
-        contentBase: path.join(__dirname, "./"),
-        compress: true,
-        port: 9000,
-        publicPath:path.resolve(__dirname,'dist')
+        'js-logger':'Logger',
+        'jquery':'jQuery'
     }
 }
