@@ -24,10 +24,23 @@ const Formflow = (($)=>{
 
         _init() {
             this.data = [];
-
         }
 
+        /**
+         * render dom to browser
+         * @private
+         */
         _render() {
+            this._renderTable();
+        }
+
+        /**
+         * render data to table structure
+         * @private
+         */
+        _renderTable(){
+            // avg space to every stanrd td (no colspan)
+            const tdWidth = Number(1 / (this.options.layout * 2))
             const $element = this._element, data = this.data,options = this.options;
             let _data = this._calcRowData(data,options.layout),trs = "";
             for(let i = 0; i < _data.length; i++){
@@ -35,23 +48,24 @@ const Formflow = (($)=>{
                 let rowData = _data[i],tds = "";
                 for(let j = 0; j < rowData.length; j++){
                     if(typeof rowData[j].vFill !== 'undefined'){
-                        tds += `<td class="hc-formflow-value"  colspan="${rowData[j].colspan}">${rowData[j].vFill}</td>`
+                        for(let i = 0; i < rowData[j].colspan; i++){
+                            tds += `<td class="hc-formflow-value" width="${tdWidth*100}%">${rowData[j].vFill}</td>`
+                        }
                     }else{
-                        tds += `<td class="hc-formflow-label" colspan="${rowData[j].kColspan}">${rowData[j].kText}</td><td class="hc-formflow-value"  colspan="${rowData[j].vColspan}">${rowData[j].vText}</td>`
+                        tds += `<td  class="hc-formflow-label" width="${tdWidth*100}%" colspan="${rowData[j].kColspan}">${rowData[j].kText}</td><td class="hc-formflow-value" width="${tdWidth * rowData[j].vColspan * 100}%"  colspan="${rowData[j].vColspan}">${rowData[j].vText}</td>`
                     }
                 }
                 tr = `<tr>`+
-                        tds +
+                    tds +
                     `</tr>`
                 trs += tr
             }
             let tableDom = `<table class="hc-formflow">`+
-                                `<tbody>`+
-                                        trs+
-                                `</tbody>`+
-                            `</table>`
+                `<tbody>`+
+                trs+
+                `</tbody>`+
+                `</table>`
             $element.empty().append(tableDom)
-
         }
 
         /**
@@ -79,11 +93,19 @@ const Formflow = (($)=>{
                 col.vColspan = colspan * 2  - 1;
                 row.push(col)
             })
+            Logger.debug("calcRowData",rowedData)
 
             /*** fill evey rows rest space with blanks ***/
-            return this._fillBlanks(rowedData,this.options.layout)
+            return this._expandTd(rowedData,this.options.layout)
         }
 
+        /**
+         * fill rest of row space with blanks
+         * @param rowsData
+         * @param layout
+         * @returns {*}
+         * @private
+         */
         _fillBlanks(rowsData,layout) {
             let _rowsData = $.extend([],rowsData),self = this;
             _rowsData.forEach(function(row){
@@ -98,6 +120,26 @@ const Formflow = (($)=>{
             return _rowsData;
         }
 
+        /**
+         * let every row's last col expand to end
+         * @param rowsData
+         * @param layout
+         * @returns {*}
+         * @private
+         */
+        _expandTd(rowsData,layout) {
+            let _rowsData = $.extend([],rowsData),self = this;
+            _rowsData.forEach(function(row){
+                var emptyColNum = layout * 2;
+                row.forEach((col) => {
+                    emptyColNum = emptyColNum - col.kColspan - col.vColspan
+                })
+                if(emptyColNum > 0)
+                    row[row.length - 1].vColspan = row[row.length - 1].vColspan + emptyColNum
+            })
+            return _rowsData
+        }
+
         _formatColData(data) {
            data = $.extend({},Formflow.defaultMetaOptions(),data)
            return data
@@ -108,7 +150,7 @@ const Formflow = (($)=>{
             Logger.debug("invoke setData function")
 
             // sort data
-            //self.sortDatabyIndex(data)
+            self.sortDatabyIndex(data)
             Logger.debug("sortbyIndex data:",data)
 
             // format data
@@ -121,6 +163,11 @@ const Formflow = (($)=>{
             this._render();
         }
 
+        /**
+         * sort by col's index asc
+         * @param data
+         * @returns {Array}
+         */
         sortDatabyIndex(data) {
             if(!$.isArray(data) || data.length === 0)
                 return [];
@@ -138,6 +185,7 @@ const Formflow = (($)=>{
             }
         }
 
+        // col required basic metadata
         static defaultMetaOptions(){
             return {
                 weight:Formflow.NORMAL,
@@ -176,7 +224,7 @@ const Formflow = (($)=>{
     Formflow.INDEXSTART = 0
 
     Formflow.defaultOptions = {
-        layout:5 // layout cols contains 1,2,4 three
+        layout:4 // layout cols contains 1,2,4 three
     }
 
     let plugin = $.fn[NAME] = Formflow._jQueryInterface;
