@@ -39,4 +39,14 @@
         <!--</tbody>-->
     <!--</table>-->
 </body>
+<script>
+    $(document).ready(function(){
+        $.get( "test/data.json", function( data ) {
+            var ff = $("#form").formflow();
+            ff.formflow("setData",data)
+            var myCol = ff.formflow("getDatabyId","chentao")
+            console.log("chentao:",myCol)
+        });
+    })
+</script>
 </html>

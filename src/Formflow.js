@@ -11,6 +11,7 @@ const Formflow = (($)=>{
     const NAME = 'formflow'
     const DATA_KEY = 'hc.'
     class Formflow {
+
         constructor(element,options) {
             this._element = element;
             this.options = _.extend({},options,Formflow.defaultOptions)
@@ -18,9 +19,6 @@ const Formflow = (($)=>{
             this._init();
         }
 
-        set_w(width) {
-
-        }
 
         _init() {
             this.data = [];
@@ -108,7 +106,7 @@ const Formflow = (($)=>{
          */
         _fillBlanks(rowsData,layout) {
             let _rowsData = $.extend([],rowsData),self = this;
-            _rowsData.forEach(function(row){
+            _rowsData.forEach((row) => {
                 var emptyColNum = layout * 2;
                 row.forEach((col) => {
                     emptyColNum = emptyColNum - col.kColspan - col.vColspan
@@ -129,7 +127,7 @@ const Formflow = (($)=>{
          */
         _expandTd(rowsData,layout) {
             let _rowsData = $.extend([],rowsData),self = this;
-            _rowsData.forEach(function(row){
+            _rowsData.forEach((row) => {
                 var emptyColNum = layout * 2;
                 row.forEach((col) => {
                     emptyColNum = emptyColNum - col.kColspan - col.vColspan
@@ -154,7 +152,7 @@ const Formflow = (($)=>{
             Logger.debug("sortbyIndex data:",data)
 
             // format data
-            data.forEach(function(val,index){
+            data.forEach((val,index) => {
                 data[index] = self._formatColData(val)
             })
 
@@ -162,6 +160,41 @@ const Formflow = (($)=>{
             Logger.debug("merged data:",data)
             this._render();
         }
+
+        /**
+         * this.data is not original data has been merged
+         * @returns {Array|*}
+         */
+        getData() {
+            return this.data;
+        }
+
+        /**
+         * get single col data by id
+         * @param id
+         * @returns {*|null}
+         */
+        getDatabyId(id) {
+            let col;
+            this.data.forEach( item => {
+                if(item.id === id)  {
+                    col = item
+                }
+                return;
+            })
+            return col || null;
+        }
+
+        /**
+         * update col data by id
+         * @param id
+         * @param col
+         */
+        updateDatabyId(id,col) {
+            
+        }
+
+
 
         /**
          * sort by col's index asc
@@ -198,10 +231,11 @@ const Formflow = (($)=>{
         }
 
         static _jQueryInterface(config){
-            const _config = typeof config === 'object' ? config : null
-            const params = Array.prototype.slice.call(arguments,1)
-            const methodName = arguments[0]
-            return this.each(function(){
+            const _config = typeof config === 'object' ? config : null;
+            const params = Array.prototype.slice.call(arguments,1);
+            const methodName = arguments[0];
+            let returnValue;
+            this.each(function(){
                 const $element = $(this);
                 let data = $element.data("hc-formflow")
                 if(!data){
@@ -212,35 +246,31 @@ const Formflow = (($)=>{
                     if(data[config] === 'undefined'){
                         throw new TypeError(`No method "${config}"`)
                     }
-                    data[methodName].apply(data,params)
+                    returnValue= data[methodName].apply(data,params)
                 }
             })
+            return typeof returnValue === 'undefined' ? this : returnValue
         }
     }
 
-
-
-// the index of index and groupstart
+    // the index of index and groupstart
     Formflow.INDEXSTART = 0
 
     Formflow.defaultOptions = {
-        layout:4 // layout cols contains 1,2,4 three
+        layout:4 // layout cols is 4
     }
 
-    let plugin = $.fn[NAME] = Formflow._jQueryInterface;
-                 $.fn[NAME].Constructor = Formflow
+    $.fn[NAME] = Formflow._jQueryInterface;
+    $.fn[NAME].Constructor = Formflow
 
     // weight var
-    // todo 静态变量暴露方式不优雅
-    plugin.LIGHTER = Formflow.LIGHTER = -2
-    plugin.LIGHT = Formflow.LIGHT = -1
-    plugin.NORMAL = Formflow.NORMAL = 0
-    plugin.HEAVEY = Formflow.HEAVEY = 1
-    plugin.HEAVEYER = Formflow.HEAVEYER = 2
+    // plugin.LIGHTER = Formflow.LIGHTER = -2
+    // plugin.LIGHT = Formflow.LIGHT = -1
+    // plugin.NORMAL = Formflow.NORMAL = 0
+    // plugin.HEAVEY = Formflow.HEAVEY = 1
+    // plugin.HEAVEYER = Formflow.HEAVEYER = 2
 
 })($)
-$("#form").formflow();
-$("#form").formflow("setData",data)
 module.exports = Formflow;
 
 
