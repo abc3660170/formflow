@@ -238,10 +238,7 @@ const Formflow = (($)=>{
             let targetCol = this.getColbyId(sourceId);
             if(targetCol){
                 $.extend(targetCol,col)
-                let insertDom = this._renderTd(targetCol)
-                let deleteDom = $element.find(`td[colId="${sourceId}"]`)
-                deleteDom.last().after(insertDom)
-                deleteDom.remove()
+                $element.find(`td[colId="${sourceId}"].hc-formflow-value`).html(targetCol.vText)
                 return true;
             }else{
                 return false;
