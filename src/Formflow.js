@@ -40,18 +40,13 @@ const Formflow = (($)=>{
             // avg space to every stanrd td (no colspan)
             const tdWidth = Number(1 / (this.options.layout * 2))
             const $element = this._element, data = this.data,options = this.options;
-            let _data = this._calcRowData(data,options.layout),trs = "";
+            let _data = this._calcRowData(data,options.layout)
+            let trs = "";
             for(let i = 0; i < _data.length; i++){
                 let tr = "<tr>";
                 let rowData = _data[i],tds = "";
                 for(let j = 0; j < rowData.length; j++){
-                    if(typeof rowData[j].vFill !== 'undefined'){
-                        for(let i = 0; i < rowData[j].colspan; i++){
-                            tds += `<td class="hc-formflow-value" width="${tdWidth*100}%">${rowData[j].vFill}</td>`
-                        }
-                    }else{
-                        tds += `<td  class="hc-formflow-label" width="${tdWidth*100}%" colspan="${rowData[j].kColspan}">${rowData[j].kText}</td><td class="hc-formflow-value" width="${tdWidth * rowData[j].vColspan * 100}%"  colspan="${rowData[j].vColspan}">${rowData[j].vText}</td>`
-                    }
+                    tds += this._renderTd(rowData[j])
                 }
                 tr = `<tr>`+
                     tds +
@@ -60,10 +55,47 @@ const Formflow = (($)=>{
             }
             let tableDom = `<table class="hc-formflow">`+
                 `<tbody>`+
-                trs+
+                    trs+
                 `</tbody>`+
                 `</table>`
             $element.empty().append(tableDom)
+        }
+
+        /**
+         * adjust every td the same width
+         * @private
+         */
+        _calcWidth(rowedData,layout) {
+            var maxTdNum = layout * 2;
+            rowedData.forEach( row => {
+                row.forEach(col => {
+                    col.kWidth = Number(col.kColspan) / maxTdNum * 100 + "%"
+                    col.vWidth = Number(col.vColspan) / maxTdNum * 100 + "%"
+                })
+            })
+            return rowedData
+        }
+
+
+        /**
+         * create single kv data
+         * @param colData
+         * @returns {string}
+         * @private
+         */
+        _renderTd(colData) {
+            return  `<td  class="hc-formflow-label"  
+                        colId="${colData.id}" 
+                        width="${colData.kWidth}"
+                        colspan="${colData.kColspan}">
+                            ${colData.kText}
+                    </td>
+                    <td class="hc-formflow-value"
+                        colId="${colData.id}" 
+                         width="${colData.vWidth}"
+                        colspan="${colData.vColspan}">
+                            ${colData.vText}
+                    </td>`
         }
 
         /**
@@ -92,9 +124,8 @@ const Formflow = (($)=>{
                 row.push(col)
             })
             Logger.debug("calcRowData",rowedData)
-
-            /*** fill evey rows rest space with blanks ***/
-            return this._expandTd(rowedData,this.options.layout)
+            this._expandTd(rowedData,this.options.layout)
+            return this._calcWidth(rowedData,this.options.layout)
         }
 
         /**
@@ -126,8 +157,7 @@ const Formflow = (($)=>{
          * @private
          */
         _expandTd(rowsData,layout) {
-            let _rowsData = $.extend([],rowsData),self = this;
-            _rowsData.forEach((row) => {
+            rowsData.forEach((row) => {
                 var emptyColNum = layout * 2;
                 row.forEach((col) => {
                     emptyColNum = emptyColNum - col.kColspan - col.vColspan
@@ -135,7 +165,7 @@ const Formflow = (($)=>{
                 if(emptyColNum > 0)
                     row[row.length - 1].vColspan = row[row.length - 1].vColspan + emptyColNum
             })
-            return _rowsData
+            return rowsData
         }
 
         _formatColData(data) {
@@ -166,7 +196,7 @@ const Formflow = (($)=>{
          * @returns {Array|*}
          */
         getData() {
-            return this.data;
+            return $.extend(true,[],this.data);
         }
 
         /**
@@ -174,7 +204,7 @@ const Formflow = (($)=>{
          * @param id
          * @returns {*|null}
          */
-        getDatabyId(id) {
+        getColbyId(id,isClone = true) {
             let col;
             this.data.forEach( item => {
                 if(item.id === id)  {
@@ -182,7 +212,7 @@ const Formflow = (($)=>{
                 }
                 return;
             })
-            return col || null;
+            return typeof col !== 'undefined' ? isClone ? $.extend(true,{},col) : col : null;
         }
 
         /**
@@ -190,10 +220,33 @@ const Formflow = (($)=>{
          * @param id
          * @param col
          */
-        updateDatabyId(id,col) {
-            
-        }
+        updateCol(col) {
+            // must have id
+            let $element = this._element;
+            const sourceId = col.id;
+            if(typeof sourceId === 'undefined'){
+                Logger.error("update col must have id segment");
+                return false
+            }
+            // some var are readonly
+            delete col.kWidth;
+            delete col.vWidth;
+            delete col.index;
+            delete col.kColspan;
+            delete col.vColspan;
 
+            let targetCol = this.getColbyId(sourceId);
+            if(targetCol){
+                $.extend(targetCol,col)
+                let insertDom = this._renderTd(targetCol)
+                let deleteDom = $element.find(`td[colId="${sourceId}"]`)
+                deleteDom.last().after(insertDom)
+                deleteDom.remove()
+                return true;
+            }else{
+                return false;
+            }
+        }
 
 
         /**

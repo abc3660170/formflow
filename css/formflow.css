@@ -1,3 +1,4 @@
+.hc-formflow{ table-layout: fixed;}
 .hc-formflow > tbody > tr { border: 1px solid #dadee4}
-.hc-formflow td[class^="hc-formflow-"]{ padding: 10px 0 10px 10px;}
+.hc-formflow td[class^="hc-formflow-"]{ padding: 10px 0 10px 10px; word-wrap: break-word; word-break: break-all;vertical-align:middle}
 .hc-formflow-label{ background: #EDF4FF;}

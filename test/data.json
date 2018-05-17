@@ -42,4 +42,81 @@
     "vText":"苏A12234，苏B212212",
     "index":4
   }
+,
+  {
+    "kText":"IMSI",
+    "vText":"4652589963252114",
+    "index":4
+  },
+  {
+    "kText":"特别搞笑标签（原始类型数据）",
+    "vText":"677144",
+    "index":4
+  },
+  {
+    "kText":"厂商名称",
+    "vText":"大唐科技",
+    "index":4
+  },
+  {
+    "kText":"用户设备IP地址",
+    "vText":"10.25.36.125",
+    "index":4
+  },
+  {
+    "kText":"轨迹时间标签",
+    "vText":"1",
+    "index":4
+  },
+  {
+    "kText":"运营商标识",
+    "vText":"中国移动",
+    "index":4
+  },
+  {
+    "kText":"工具类型",
+    "vText":"其他类型",
+    "index":4
+  },
+  {
+    "kText":"CI",
+    "vText":"3588487",
+    "index":4
+  },
+  {
+    "kText":"操作系统版本",
+    "vText":"YYMobile/112-networl /788.2.5 D Urtun 小区全球识别码Argbin/15.0.0",
+    "index":4
+  },
+  {
+    "kText":"协议代码",
+    "vText":"大众点评网-美食 娱乐 一体化",
+    "index":4
+  },
+  {
+    "kText":"采集地",
+    "vText":"广州市",
+    "index":4
+  },
+  {
+    "kText":"基站/AP编号",
+    "vText":"46001es4c00034",
+    "index":4
+  },
+  {
+    "kText":"特别对象标签",
+    "vText":"0",
+    "index":4
+  },
+  {
+    "kText":"截获时间（上线时间）",
+    "vText":"2018-01-19 09：00：00",
+    "index":4
+  },
+  {
+    "kText":"帖子内容",
+    "vText":"..........3,122223434,5464333,743574,2764564234,56756723535,562245345636743214536,7888834545756,2356745744563456456,354354,.........g.com.4545545.com,45453.com,1234434344.com,yisdfds.com,yishenyi.com,fdefgddd.com,element.com,ssdddaa.com,0000hgc.com,iooiii.com.seddfdfdffgf.com,uuytuu12121.comc.......",
+    "index":4,
+    "weight":4
+  }
 ]

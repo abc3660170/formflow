@@ -44,8 +44,9 @@
         $.get( "test/data.json", function( data ) {
             var ff = $("#form").formflow();
             ff.formflow("setData",data)
-            var myCol = ff.formflow("getDatabyId","chentao")
-            console.log("chentao:",myCol)
+            var myCol = ff.formflow("getColbyId","chentao")
+            ff.formflow("updateCol",{"id":"chentao","vText":"吃屎吧潘辉"})
+            // console.log("chentao:",myCol)
         });
     })
 </script>
