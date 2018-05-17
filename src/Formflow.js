@@ -37,7 +37,7 @@ const Formflow = (($)=>{
          * @private
          */
         _renderTable(){
-            // avg space to every stanrd td (no colspan)
+            // avg space to every standrd td (no colspan)
             const tdWidth = Number(1 / (this.options.layout * 2))
             const $element = this._element, data = this.data,options = this.options;
             let _data = this._calcRowData(data,options.layout)
@@ -84,17 +84,17 @@ const Formflow = (($)=>{
          * @private
          */
         _renderTd(colData) {
-            return  `<td  class="hc-formflow-label"  
+            return  `<td tag="label" class="hc-formflow-label"  
                         colId="${colData.id}" 
                         width="${colData.kWidth}"
                         colspan="${colData.kColspan}">
                             ${colData.kText}
                     </td>
-                    <td class="hc-formflow-value"
+                    <td tag="value" class="hc-formflow-value"
                         colId="${colData.id}" 
                          width="${colData.vWidth}"
                         colspan="${colData.vColspan}">
-                            ${colData.vText}
+                            ${!colData.querying ? colData.vText : this._addLoadingTip(colData.id)}
                     </td>`
         }
 
@@ -108,7 +108,7 @@ const Formflow = (($)=>{
             /*** first base max number of layout fit rows  ***/
             let maxColNum = layout;
             let i = 0,row = [],rowedData = [];
-            data.forEach((col) => {
+            data.forEach( col => {
                 // current col need space colspan
                 const colspan = col.weight ? col.weight : 1;
                 // the rest of current row's space
@@ -120,7 +120,7 @@ const Formflow = (($)=>{
                 }else{
                     i = i + colspan
                 }
-                col.vColspan = colspan * 2  - 1;
+                col.vColspan = colspan * 2  - col.kColspan;
                 row.push(col)
             })
             Logger.debug("calcRowData",rowedData)
@@ -157,9 +157,9 @@ const Formflow = (($)=>{
          * @private
          */
         _expandTd(rowsData,layout) {
-            rowsData.forEach((row) => {
+            rowsData.forEach( row => {
                 var emptyColNum = layout * 2;
-                row.forEach((col) => {
+                row.forEach( col => {
                     emptyColNum = emptyColNum - col.kColspan - col.vColspan
                 })
                 if(emptyColNum > 0)
@@ -238,11 +238,33 @@ const Formflow = (($)=>{
             let targetCol = this.getColbyId(sourceId);
             if(targetCol){
                 $.extend(targetCol,col)
-                $element.find(`td[colId="${sourceId}"].hc-formflow-value`).html(targetCol.vText)
+                // since now just update two show segments
+                this._getDom(targetCol.id,"value").html(targetCol.vText)
+                this._getDom(targetCol.id,"label").html(targetCol.kText)
                 return true;
             }else{
                 return false;
             }
+        }
+
+        /**
+         * get dom not care really dom
+         * @param colId : colId
+         * @param tag : identify k or v or others
+         * @private
+         */
+        _getDom(colId,tag) {
+            let $element = this._element;
+            return $element.find(`td[colId="${colId}"][tag="${tag}"]`)
+        }
+
+
+        _addLoadingTip() {
+            return  "<div class=\"spinner\">\n" +
+                    "    <div class=\"bounce1\"></div>\n" +
+                    "    <div class=\"bounce2\"></div>\n" +
+                    "    <div class=\"bounce3\"></div>\n" +
+                    "</div>";
         }
 
 
@@ -271,12 +293,13 @@ const Formflow = (($)=>{
         // col required basic metadata
         static defaultMetaOptions(){
             return {
-                weight:Formflow.NORMAL,
+                weight:1, // take default space
                 id:uuid(),
-                index:Formflow.INDEXSTART,
-                originOrder:Formflow.INDEXSTART++,
-                kColspan:1,
-                vColspan:1
+                querying:false, // getding  ajax data,loading state
+                index:Formflow.INDEXSTART, // which number effect order
+                originOrder:Formflow.INDEXSTART++,  // self add key
+                kColspan:1, //default key space
+                vColspan:1  //default value space
             }
         }
 
@@ -307,18 +330,12 @@ const Formflow = (($)=>{
     Formflow.INDEXSTART = 0
 
     Formflow.defaultOptions = {
-        layout:4 // layout cols is 4
+        layout:4, // layout cols is 4
+        animate:true
     }
 
     $.fn[NAME] = Formflow._jQueryInterface;
     $.fn[NAME].Constructor = Formflow
-
-    // weight var
-    // plugin.LIGHTER = Formflow.LIGHTER = -2
-    // plugin.LIGHT = Formflow.LIGHT = -1
-    // plugin.NORMAL = Formflow.NORMAL = 0
-    // plugin.HEAVEY = Formflow.HEAVEY = 1
-    // plugin.HEAVEYER = Formflow.HEAVEYER = 2
 
 })($)
 module.exports = Formflow;
