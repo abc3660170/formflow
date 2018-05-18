@@ -28,7 +28,10 @@ const Formflow = (($)=>{
          * render dom to browser
          * @private
          */
-        _render() {
+        render(layout) {
+            const _layout = typeof layout === 'undefined' ? this.options.layout : layout
+            // rowed data
+            this._calcRowData(this.data,_layout)
             this._renderTable();
         }
 
@@ -36,11 +39,11 @@ const Formflow = (($)=>{
          * render data to table structure
          * @private
          */
-        _renderTable(){
+        _renderTable(layout){
             // avg space to every standrd td (no colspan)
             const tdWidth = Number(1 / (this.options.layout * 2))
             const $element = this._element, data = this.data,options = this.options;
-            let _data = this._calcRowData(data,options.layout)
+            let _data = this.rowedData;
             let trs = "";
             for(let i = 0; i < _data.length; i++){
                 let tr = "<tr>";
@@ -62,7 +65,7 @@ const Formflow = (($)=>{
         }
 
         /**
-         * adjust every td the same width
+         * style col's width use percent unit
          * @private
          */
         _calcWidth(rowedData,layout) {
@@ -84,17 +87,17 @@ const Formflow = (($)=>{
          * @private
          */
         _renderTd(colData) {
-            return  `<td tag="label" class="hc-formflow-label"  
+            return  `<td  class="hc-formflow-label"  
                         colId="${colData.id}" 
                         width="${colData.kWidth}"
                         colspan="${colData.kColspan}">
-                            ${colData.kText}
+                            <span tag="label">${colData.kText}</span>
                     </td>
-                    <td tag="value" class="hc-formflow-value"
+                    <td class="hc-formflow-value"
                         colId="${colData.id}" 
                          width="${colData.vWidth}"
                         colspan="${colData.vColspan}">
-                            ${!colData.querying ? colData.vText : this._addLoadingTip(colData.id)}
+                            <span tag="value">${!colData.querying ? colData.vText : this._addLoadingTip(colData.id)}</span>
                     </td>`
         }
 
@@ -105,12 +108,18 @@ const Formflow = (($)=>{
          * @private
          */
         _calcRowData(data,layout) {
+
             /*** first base max number of layout fit rows  ***/
             let maxColNum = layout;
+
+            // layout < options.layout will be OK,it's spec.
+            if(layout > this.options.layout)
+                throw Error("lcurrent layout must lower options.layout");
+
             let i = 0,row = [],rowedData = [];
             data.forEach( col => {
                 // current col need space colspan
-                const colspan = col.weight ? col.weight : 1;
+                const colspan = col.weight ? col.weight > layout ? layout : col.weight : 1;
                 // the rest of current row's space
                 const remainedCol = maxColNum - i;
                 // if fill all columns or comes a long col which weight > rest of space
@@ -120,12 +129,21 @@ const Formflow = (($)=>{
                 }else{
                     i = i + colspan
                 }
-                col.vColspan = colspan * 2  - col.kColspan;
+
+                // backup origin  kColspan and vColspan with _ prefix.
+                col._kColspan = col.kColspan;
+                col._vColspan = col.vColspan = colspan * 2  - col.kColspan;
                 row.push(col)
             })
+
+            this.rowedData = rowedData;
+            // expand last col to row's end
+            this._expandSpace(rowedData,layout)
+
+            //use width property with % unit
+            return this._calcWidth(rowedData,layout)
+
             Logger.debug("calcRowData",rowedData)
-            this._expandTd(rowedData,this.options.layout)
-            return this._calcWidth(rowedData,this.options.layout)
         }
 
         /**
@@ -156,7 +174,7 @@ const Formflow = (($)=>{
          * @returns {*}
          * @private
          */
-        _expandTd(rowsData,layout) {
+        _expandSpace(rowsData,layout) {
             rowsData.forEach( row => {
                 var emptyColNum = layout * 2;
                 row.forEach( col => {
@@ -174,8 +192,10 @@ const Formflow = (($)=>{
         }
 
         setData(data){
-            let self = this;
+
+            let self = this,options = this.options;
             Logger.debug("invoke setData function")
+            data = $.extend(true,[],data);
 
             // sort data
             self.sortDatabyIndex(data)
@@ -186,9 +206,10 @@ const Formflow = (($)=>{
                 data[index] = self._formatColData(val)
             })
 
+            // bind data to plugin
             this.data = data
+
             Logger.debug("merged data:",data)
-            this._render();
         }
 
         /**
@@ -239,8 +260,7 @@ const Formflow = (($)=>{
             if(targetCol){
                 $.extend(targetCol,col)
                 // since now just update two show segments
-                this._getDom(targetCol.id,"value").html(targetCol.vText)
-                this._getDom(targetCol.id,"label").html(targetCol.kText)
+                this._setDomValue(this._getDom(targetCol.id,"value"),targetCol.vText)
                 return true;
             }else{
                 return false;
@@ -255,10 +275,30 @@ const Formflow = (($)=>{
          */
         _getDom(colId,tag) {
             let $element = this._element;
-            return $element.find(`td[colId="${colId}"][tag="${tag}"]`)
+            return $element.find(`td[colId="${colId}"] [tag="${tag}"]`)
         }
 
 
+        _setDomValue($dom,val) {
+            let options = this.options;
+            if(options.animate){
+                $dom.html(val).hide();
+                $dom.fadeIn(1000)
+            }else{
+                $dom.html(val)
+            }
+        }
+
+        setLayout() {
+
+        }
+
+
+        /**
+         * wating data comes
+         * @returns {string}
+         * @private
+         */
         _addLoadingTip() {
             return  "<div class=\"spinner\">\n" +
                     "    <div class=\"bounce1\"></div>\n" +
@@ -331,7 +371,9 @@ const Formflow = (($)=>{
 
     Formflow.defaultOptions = {
         layout:4, // layout cols is 4
-        animate:true
+        kWidth:"150px",// pixel or scale
+        minWidth:"100px",
+        animate:true // enable animate ?
     }
 
     $.fn[NAME] = Formflow._jQueryInterface;

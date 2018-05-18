@@ -8,7 +8,8 @@
   {
     "kText":"性别",
     "vText":"金穗丰公司（保安主",
-    "index":11
+    "index":11,
+    "id":"chentao2"
   },
   {
     "kText":"民族",
@@ -18,7 +19,8 @@
   {
     "kText":"手机号码",
     "vText":"15195949949,18565259844",
-    "index":9
+    "index":9,
+    "id":"chentao3"
   },
   {
     "kText":"服务场所",
@@ -30,7 +32,8 @@
     "kText":"周六周日是否加班的说明",
     "vText":"周六周日你为什么不加班，你这样你知道公司会损失多少钱吗，你这个没有责任心的员工收拾东西走人吧。",
     "weight":2,
-    "index":7
+    "index":7,
+    "id":"chentao4"
   },
   {
     "kText":"出生日期",
@@ -118,7 +121,6 @@
     "vText":"..........3,122223434,5464333,743574,2764564234,56756723535,562245345636743214536,7888834545756,2356745744563456456,354354,.........g.com.4545545.com,45453.com,1234434344.com,yisdfds.com,yishenyi.com,fdefgddd.com,element.com,ssdddaa.com,0000hgc.com,iooiii.com.seddfdfdffgf.com,uuytuu12121.comc.......",
     "index":4,
     "weight":4,
-    "id":"tiezi",
-    "querying":"true"
+    "id":"tiezi"
   }
 ]

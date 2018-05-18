@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "webpack-dev-server  --hot  --mode development",
+    "start:dev": "webpack-dev-server  --hot --open chrome --mode development",
     "dev": "webpack --mode development"
   },
   "author": "",

@@ -9,7 +9,16 @@
     <script src="../lib/logger.js"></script>
 </head>
 <body style="margin: 100px;">
-
+    <div style="margin-bottom: 20px;">
+        <button id="ajaxSeg">异步字段请求</button>
+        <select id="selectCol" style="height: 24px;">
+            <option value="4">表单共有多少列</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+    </div>
     <div id="form"></div>
     <!--<table class="hc-formflow">-->
         <!--<tbody>-->
@@ -42,16 +51,37 @@
 </body>
 <script>
     $(document).ready(function(){
+        var ff
         $.get( "test/data.json", function( data ) {
-            var ff = $("#form").formflow();
+            ff = $("#form").formflow();
             ff.formflow("setData",data)
-            var myCol = ff.formflow("getColbyId","chentao")
-            setTimeout(function(){
-                ff.formflow("updateCol",{"id":"tiezi","vText":data[1].vText})
-            },2000)
-
+            ff.formflow("render")
+            $("#selectCol").on("change",function(){
+                ff.formflow("render",$(this).val())
+            })
             // console.log("chentao:",myCol)
         });
+
+        $("#ajaxSeg").on("click",function(){
+            $.get( "test/data.json", function( data ) {
+
+                var timeDelay = 0
+                setTimeout(function(){
+                    ff.formflow("updateCol",{"id":"test0","vText":data[0].vText})
+                },timeDelay = timeDelay+1000)
+                setTimeout(function(){
+                    ff.formflow("updateCol",{"id":"test2","vText":data[2].vText})
+                },timeDelay = timeDelay+1000)
+                setTimeout(function(){
+                    ff.formflow("updateCol",{"id":"test6","vText":data[6].vText})
+                },timeDelay = timeDelay+1000)
+                setTimeout(function(){
+                   ff.formflow("updateCol",{"id":"tiezi","vText":data[22].vText})
+                },timeDelay = timeDelay+1000)
+            });
+        })
+
+
     })
 </script>
 </html>
