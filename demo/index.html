@@ -50,14 +50,16 @@
     <!--</table>-->
 </body>
 <script>
+    var ff
+    var currentLayout;
     $(document).ready(function(){
-        var ff
+        ff = $("#form").formflow();
         $.get( "test/data.json", function( data ) {
-            var ff = $("#form").formflow();
             ff.formflow("setData",data)
             ff.formflow("render")
             $("#selectCol").on("change",function(){
-                ff.formflow("render",$(this).val())
+                currentLayout = $(this).val()
+                ff.formflow("render",currentLayout)
             })
 
             $(window).on("resize",function(){
@@ -68,9 +70,15 @@
 
         $("#ajaxSeg").on("click",function(){
             $.get( "test/data.json", function( data ) {
-                var ff = $("#form").formflow();
+                data[0].querying = true
+                data[0].id = "test0"
+                data[2].querying = true
+                data[2].id = "test2"
+                data[6].querying = true
+                data[6].id = "test6"
+                data[22].querying = true
                 ff.formflow("setData",data)
-                ff.formflow("render")
+                ff.formflow("render",currentLayout)
                 var timeDelay = 0
                 setTimeout(function(){
                     ff.formflow("updateCol",{"id":"test0","vText":data[0].vText})

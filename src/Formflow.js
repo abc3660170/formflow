@@ -61,39 +61,19 @@ const Formflow = (($)=>{
                     trs+
                 `</tbody>`+
                 `</table>`
-            $element.empty().append(tableDom)
+            $element.empty().append($(tableDom))
+            // enable show fadein animate
+            if(options.animate){
+                let $trs = $element.find("tr");
+                const timeDivide = Formflow.ANIMATETIME / $trs.size();
+                $trs
+                    .hide()
+                    .each((index,tr) => {
+                        $(tr).fadeIn(timeDivide * index)
+                    })
+            }
         }
 
-        /**
-         * style col's width use percent unit
-         * @private
-         */
-        _calcWidth(rowedData,layout) {
-            let $element = this._element,options = this.options;
-            const allColSpace = layout * 2;
-            rowedData.forEach( row => {
-                if(typeof options.kWidth === 'number') {
-                    // because of kWidth is scale number
-                    let divisor = (allColSpace - row.length) + row.length * options.kWidth
-                    row.forEach(col => {
-                        col.kWidth = (options.kWidth * (1 / divisor)) * 100 + "%"
-                        col.vWidth = (1 / divisor * col.vColspan) * 100 + "%"
-                    })
-                }else if(typeof options.kWidth === 'string') {
-                    //todo fixed pixel kWidth do resize
-                    const containerWidth = $element.width();
-                    // vLeftWidth is container's width - all certain kWidth
-                    let vLeftWidth = containerWidth - row.length * parseInt(options.kWidth)
-                    row.forEach(col => {
-                        col.kWidth = options.kWidth
-                        col.vWidth = (vLeftWidth / row.length)+"px";
-                    })
-                }else{
-                    throw Error("options.kWidth type is wrong!")
-                }
-
-            })
-        }
 
         _setContainerWidth(width) {
             let options = this.options,rowedData = this.rowedData;
@@ -121,16 +101,18 @@ const Formflow = (($)=>{
 
         _resizeDom (){
             let $element = this._element,options = this.options,data = this.data;
-            this._setContainerWidth($element.width())
-            let $tds = $element.find("td[colId]");
-            $tds.each((index,td) => {
-                if(index % 2 === 0){
-                    $(td).width(data[Math.floor(index/2)].kWidth);
-                }else{
-                    $(td).width(data[Math.floor(index/2)].vWidth);
-                }
-
-            })
+            if (typeof options.kWidth === 'string'){
+                Logger.debug("resizing dom ...")
+                this._setContainerWidth($element.width())
+                let $tds = $element.find("td[colId]");
+                $tds.each((index,td) => {
+                    if(index % 2 === 0){
+                        $(td).width(data[Math.floor(index/2)].kWidth);
+                    }else{
+                        $(td).width(data[Math.floor(index/2)].vWidth);
+                    }
+                })
+            }
         }
 
 
@@ -163,6 +145,8 @@ const Formflow = (($)=>{
          */
         _calcRowData(data,layout) {
 
+            let $element = this._element;
+
             /*** first base max number of layout fit rows  ***/
             let maxColNum = layout;
 
@@ -192,10 +176,10 @@ const Formflow = (($)=>{
 
             this.rowedData = rowedData;
             // expand last col to row's end
-            this._expandSpace(rowedData,layout)
+            this._expandSpace()
 
             //use width property with % unit
-            this._calcWidth(rowedData,layout)
+            this._setContainerWidth($element.width());
 
             Logger.debug("calcRowData",rowedData)
         }
@@ -228,9 +212,10 @@ const Formflow = (($)=>{
          * @returns {*}
          * @private
          */
-        _expandSpace(rowsData,layout) {
+        _expandSpace() {
+            let options = this.options,rowsData = this.rowedData;
             rowsData.forEach( row => {
-                var emptyColNum = layout * 2;
+                var emptyColNum = options.layout * 2;
                 row.forEach( col => {
                     emptyColNum = emptyColNum - col.kColspan - col.vColspan
                 })
@@ -420,6 +405,9 @@ const Formflow = (($)=>{
 
     // the index of index and groupstart
     Formflow.INDEXSTART = 0
+
+    //
+    Formflow.ANIMATETIME = 1500
 
     Formflow.defaultOptions = {
         layout:4, // layout cols is 4
