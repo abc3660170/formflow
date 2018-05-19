@@ -53,18 +53,24 @@
     $(document).ready(function(){
         var ff
         $.get( "test/data.json", function( data ) {
-            ff = $("#form").formflow();
+            var ff = $("#form").formflow();
             ff.formflow("setData",data)
             ff.formflow("render")
             $("#selectCol").on("change",function(){
                 ff.formflow("render",$(this).val())
+            })
+
+            $(window).on("resize",function(){
+                ff.formflow("_resizeDom")
             })
             // console.log("chentao:",myCol)
         });
 
         $("#ajaxSeg").on("click",function(){
             $.get( "test/data.json", function( data ) {
-
+                var ff = $("#form").formflow();
+                ff.formflow("setData",data)
+                ff.formflow("render")
                 var timeDelay = 0
                 setTimeout(function(){
                     ff.formflow("updateCol",{"id":"test0","vText":data[0].vText})

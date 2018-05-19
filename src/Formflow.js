@@ -1,10 +1,9 @@
-var _ = require("underscore")
-var data = require("../test/data")
-var uuid = require("uuid");
-var $ = require("jquery")
-var Logger = require("js-logger")
+const _ = require("underscore");
+const uuid = require("uuid");
+const $ = require("jquery");
+const Logger = require("js-logger");
 Logger.useDefaults();
-Logger.setLevel(Logger.DEBUG)
+Logger.setLevel(Logger.DEBUG);
 // Logger.info("OMG! Check  out!");
 
 const Formflow = (($)=>{
@@ -30,6 +29,7 @@ const Formflow = (($)=>{
          */
         render(layout) {
             const _layout = typeof layout === 'undefined' ? this.options.layout : layout
+            this.currentLayout = _layout
             // rowed data
             this._calcRowData(this.data,_layout)
             this._renderTable();
@@ -39,7 +39,7 @@ const Formflow = (($)=>{
          * render data to table structure
          * @private
          */
-        _renderTable(layout){
+        _renderTable(){
             // avg space to every standrd td (no colspan)
             const tdWidth = Number(1 / (this.options.layout * 2))
             const $element = this._element, data = this.data,options = this.options;
@@ -69,14 +69,68 @@ const Formflow = (($)=>{
          * @private
          */
         _calcWidth(rowedData,layout) {
-            var maxTdNum = layout * 2;
+            let $element = this._element,options = this.options;
+            const allColSpace = layout * 2;
             rowedData.forEach( row => {
-                row.forEach(col => {
-                    col.kWidth = Number(col.kColspan) / maxTdNum * 100 + "%"
-                    col.vWidth = Number(col.vColspan) / maxTdNum * 100 + "%"
-                })
+                if(typeof options.kWidth === 'number') {
+                    // because of kWidth is scale number
+                    let divisor = (allColSpace - row.length) + row.length * options.kWidth
+                    row.forEach(col => {
+                        col.kWidth = (options.kWidth * (1 / divisor)) * 100 + "%"
+                        col.vWidth = (1 / divisor * col.vColspan) * 100 + "%"
+                    })
+                }else if(typeof options.kWidth === 'string') {
+                    //todo fixed pixel kWidth do resize
+                    const containerWidth = $element.width();
+                    // vLeftWidth is container's width - all certain kWidth
+                    let vLeftWidth = containerWidth - row.length * parseInt(options.kWidth)
+                    row.forEach(col => {
+                        col.kWidth = options.kWidth
+                        col.vWidth = (vLeftWidth / row.length)+"px";
+                    })
+                }else{
+                    throw Error("options.kWidth type is wrong!")
+                }
+
             })
-            return rowedData
+        }
+
+        _setContainerWidth(width) {
+            let options = this.options,rowedData = this.rowedData;
+            const allColSpace = this.currentLayout * 2;
+            rowedData.forEach( row => {
+                if(typeof options.kWidth === 'number') {
+                    // because of kWidth is scale number
+                    let divisor = (allColSpace - row.length) + row.length * options.kWidth
+                    row.forEach(col => {
+                        col.kWidth = (options.kWidth * (1 / divisor)) * 100 + "%"
+                        col.vWidth = (1 / divisor * col.vColspan) * 100 + "%"
+                    })
+                }else if(typeof options.kWidth === 'string') {
+                    //todo fixed pixel kWidth do resize
+                    const containerWidth = width;
+                    // vLeftWidth is container's width - all certain kWidth
+                    let vLeftWidth = containerWidth - row.length * parseInt(options.kWidth)
+                    row.forEach(col => {
+                        col.kWidth = options.kWidth
+                        col.vWidth = (vLeftWidth / row.length)+"px";
+                    })
+                }
+            })
+        }
+
+        _resizeDom (){
+            let $element = this._element,options = this.options,data = this.data;
+            this._setContainerWidth($element.width())
+            let $tds = $element.find("td[colId]");
+            $tds.each((index,td) => {
+                if(index % 2 === 0){
+                    $(td).width(data[Math.floor(index/2)].kWidth);
+                }else{
+                    $(td).width(data[Math.floor(index/2)].vWidth);
+                }
+
+            })
         }
 
 
@@ -89,16 +143,16 @@ const Formflow = (($)=>{
         _renderTd(colData) {
             return  `<td  class="hc-formflow-label"  
                         colId="${colData.id}" 
-                        width="${colData.kWidth}"
-                        colspan="${colData.kColspan}">
+                        colspan="${colData.kColspan}"
+                        style="width: ${colData.kWidth};">
                             <span tag="label">${colData.kText}</span>
-                    </td>
-                    <td class="hc-formflow-value"
+                     </td>
+                     <td class="hc-formflow-value"
                         colId="${colData.id}" 
-                         width="${colData.vWidth}"
-                        colspan="${colData.vColspan}">
+                        colspan="${colData.vColspan}"
+                        style="width: ${colData.vWidth};">
                             <span tag="value">${!colData.querying ? colData.vText : this._addLoadingTip(colData.id)}</span>
-                    </td>`
+                     </td>`
         }
 
         /**
@@ -141,7 +195,7 @@ const Formflow = (($)=>{
             this._expandSpace(rowedData,layout)
 
             //use width property with % unit
-            return this._calcWidth(rowedData,layout)
+            this._calcWidth(rowedData,layout)
 
             Logger.debug("calcRowData",rowedData)
         }
@@ -255,6 +309,8 @@ const Formflow = (($)=>{
             delete col.index;
             delete col.kColspan;
             delete col.vColspan;
+            // close loading state
+            col.querying = false;
 
             let targetCol = this.getColbyId(sourceId);
             if(targetCol){
@@ -287,10 +343,6 @@ const Formflow = (($)=>{
             }else{
                 $dom.html(val)
             }
-        }
-
-        setLayout() {
-
         }
 
 
@@ -371,8 +423,7 @@ const Formflow = (($)=>{
 
     Formflow.defaultOptions = {
         layout:4, // layout cols is 4
-        kWidth:"150px",// pixel or scale
-        minWidth:"100px",
+        kWidth:"200px",// pixel or scale
         animate:true // enable animate ?
     }
 
