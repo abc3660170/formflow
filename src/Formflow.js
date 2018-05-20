@@ -1,4 +1,3 @@
-const _ = require("underscore");
 const uuid = require("uuid");
 const $ = require("jquery");
 const Logger = require("js-logger");
@@ -13,7 +12,7 @@ const Formflow = (($)=>{
 
         constructor(element,options) {
             this._element = element;
-            this.options = _.extend({},options,Formflow.defaultOptions)
+            this.options = $.extend({},options,Formflow.defaultOptions)
             Logger.debug("merged options:",this.options)
             this._init();
         }
