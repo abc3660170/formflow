@@ -6,8 +6,10 @@
     <title>test</title>
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/formflow.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
     <script src="../lib/jquery.js"></script>
     <script src="../lib/logger.js"></script>
+    <script src="../dist/bundle.js"></script>
 </head>
 <body style="margin: 100px;">
     <div style="margin-bottom: 20px;">
@@ -54,8 +56,8 @@
     var ff
     var currentLayout;
     $(document).ready(function(){
-        ff = $("#form").formflow();
-        $.get( "test/data.json", function( data ) {
+        ff = $("#form").formflow({"animate":false});
+        $.get( "../test/data.json", function( data ) {
             ff.formflow("setData",data)
             ff.formflow("render")
             $("#selectCol").on("change",function(){
@@ -70,7 +72,7 @@
         });
 
         $("#ajaxSeg").on("click",function(){
-            $.get( "test/data.json", function( data ) {
+            $.get( "../test/data.json", function( data ) {
                 data[0].querying = true
                 data[0].id = "test0"
                 data[2].querying = true

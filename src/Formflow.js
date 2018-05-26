@@ -1,6 +1,6 @@
-const uuid = require("uuid");
-const $ = require("jquery");
-const Logger = require("js-logger");
+import { uuid }  from '../lib/uuid'
+import $ from 'jquery';
+import Logger from 'js-logger';
 Logger.useDefaults();
 Logger.setLevel(Logger.DEBUG);
 // Logger.info("OMG! Check  out!");
@@ -12,7 +12,7 @@ const Formflow = (($)=>{
 
         constructor(element,options) {
             this._element = element;
-            this.options = $.extend({},options,Formflow.defaultOptions)
+            this.options = $.extend({},Formflow.defaultOptions,options)
             Logger.debug("merged options:",this.options)
             this._init();
         }
@@ -103,7 +103,7 @@ const Formflow = (($)=>{
             if (typeof options.kWidth === 'string'){
                 Logger.debug("resizing dom ...")
                 this._setContainerWidth($element.width())
-                let $tds = $element.find("td[colId]");
+                let $tds = $element.find("[colId]");
                 $tds.each((index,td) => {
                     if(index % 2 === 0){
                         $(td).width(data[Math.floor(index/2)].kWidth);
@@ -366,10 +366,14 @@ const Formflow = (($)=>{
             }
         }
 
+        getOptions(config){
+            return $.extend({},Formflow.defaultOptions,config)
+        }
+
         // col required basic metadata
         static defaultMetaOptions(){
             return {
-                weight:1, // take default space
+                weight:1, // ta=ke default space
                 id:uuid(),
                 querying:false, // getding  ajax data,loading state
                 index:Formflow.INDEXSTART, // which number effect order
@@ -416,9 +420,9 @@ const Formflow = (($)=>{
 
     $.fn[NAME] = Formflow._jQueryInterface;
     $.fn[NAME].Constructor = Formflow
-
+    return Formflow;
 })($)
-module.exports = Formflow;
+export default Formflow;
 
 
 

@@ -10,28 +10,31 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "webpack-dev-server  --hot --open chrome --mode development",
     "dev": "webpack --mode development",
-    "babel-cli": "babel src/Formflow.js -o fuck.js"
+    "babel-cli": "babel src/Formflow.js -o fuck.js",
+    "build": "rollup -c"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "handlebars": "^4.0.11",
-    "handlebars-loader": "^1.7.0",
-    "uuid": "^3.2.1"
+    "handlebars-loader": "^1.7.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-loader": "^7.1.4",
     "babel-plugin-loop-optimizer": "^1.4.1",
     "babel-preset-env": "^1.7.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-es2015-loose": "^8.0.0",
     "clean-webpack-plugin": "^0.1.19",
     "concat": "^1.0.3",
     "html-webpack-harddisk-plugin": "^0.2.0",
     "html-webpack-plugin": "^3.2.0",
     "jquery": "^1.7.2",
     "js-logger": "^1.4.1",
+    "rollup": "^0.59.3",
+    "rollup-plugin-babel": "^3.0.4",
+    "rollup-plugin-commonjs": "^9.1.3",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-resolve": "^3.3.0",
     "webpack": "^4.8.2",
     "webpack-cli": "^2.1.3",
     "webpack-dev-server": "^3.1.4"
