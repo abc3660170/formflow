@@ -1,22 +1,22 @@
 const path = require("path");
 const webpack = require('webpack');
-const webpackConcatPlugin = require("./plugins/webpack-concat-plugin")
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 module.exports = {
     entry: {
-        bundle: path.resolve(__dirname, 'index.js')
+        bundle: path.resolve(__dirname, '../index.js')
     },
     output:{
         filename:"bundle.js",
-        path:path.resolve(__dirname,'dist')
+        path:path.resolve(__dirname,'../dist')
     },
     node: {
         fs: "empty"
     },
     target:"web",
     devServer: {
-        contentBase: './'
+        contentBase: './',
+        host:"0.0.0.0"
     },
     plugins:[
        // new webpackConcatPlugin(),
@@ -40,6 +40,9 @@ module.exports = {
                 use: {
                     loader: 'babel-loader'
                 }
+            },{
+                test:/\.handlebars$/,
+                loader:'handlebars-loader'
             }
         ]
     }

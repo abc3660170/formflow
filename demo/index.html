@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8" />
     <title>test</title>
-    <link rel="stylesheet" href="../css/reset.css">
-    <link rel="stylesheet" href="../css/formflow.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
-    <script src="../lib/jquery.js"></script>
-    <script src="../lib/logger.js"></script>
-    <script src="../dist/bundle.js"></script>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/formflow.css">
+    <script src="src/utils/es5-shim.min.js"></script>
+    <script src="src/utils/es5-sham.min.js"></script>
+    <script src="src/utils/jquery.js"></script>
+    <script src="src/utils/logger.js"></script>
+    <script src="dist/bundle.js"></script>
 </head>
 <body style="margin: 100px;">
     <div style="margin-bottom: 20px;">
@@ -23,40 +24,12 @@
         </select>
     </div>
     <div id="form"></div>
-    <!--<table class="hc-formflow">-->
-        <!--<tbody>-->
-            <!--<tr>-->
-                <!--<td class="hc-formflow-label">姓名</td>-->
-                <!--<td class="hc-formflow-value">陈涛</td>-->
-                <!--<td class="hc-formflow-label">性别</td>-->
-                <!--<td class="hc-formflow-value">男</td>-->
-                <!--<td class="hc-formflow-label">名族</td>-->
-                <!--<td class="hc-formflow-value">汉</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="hc-formflow-label">手机号码</td>-->
-                <!--<td class="hc-formflow-value">15195949949</td>-->
-                <!--<td class="hc-formflow-label">服务场所</td>-->
-                <!--<td class="hc-formflow-value" colspan="3">精髓分公司（保安主管），华润万家生活超市（广州）公司</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="hc-formflow-label">出生日期</td>-->
-                <!--<td class="hc-formflow-value" colspan="2">15195949949</td>-->
-                <!--<td class="hc-formflow-label">服务场所</td>-->
-                <!--<td class="hc-formflow-value" colspan="2">精髓分公司（保安主管），华润万家生活超市（广州）公司</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td class="hc-formflow-label">备注</td>-->
-                <!--<td class="hc-formflow-value" colspan="5">我是一个不回家的人，我是一个不回家的人，我是一个不回家的人，我是一个不回家的人，我是一个不回家的人，我是一个不回家的人我是一个不回家的人，我是一个不回家的人，我是一个不回家的人我是一个不回家的人</td>-->
-            <!--</tr>-->
-        <!--</tbody>-->
-    <!--</table>-->
 </body>
 <script>
     var ff
     var currentLayout;
     $(document).ready(function(){
-        ff = $("#form").formflow({"animate":false});
+        ff = $("#form").formflow({"animate":true});
         $.get( "../test/data.json", function( data ) {
             ff.formflow("setData",data)
             ff.formflow("render")
@@ -68,7 +41,6 @@
             $(window).on("resize",function(){
                 ff.formflow("_resizeDom")
             })
-            // console.log("chentao:",myCol)
         });
 
         $("#ajaxSeg").on("click",function(){
@@ -97,8 +69,6 @@
                 },timeDelay = timeDelay+1000)
             });
         })
-
-
     })
 </script>
 </html>

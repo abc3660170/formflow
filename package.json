@@ -8,16 +8,18 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "webpack-dev-server  --hot --open chrome --mode development",
-    "dev": "webpack --mode development",
+    "start:dev": "webpack-dev-server --config build/webpack.config.js  --hot --open chrome --mode development",
+    "dev": "webpack --config build/webpack.config.js --mode development",
     "babel-cli": "babel src/Formflow.js -o fuck.js",
-    "build": "rollup -c"
+    "build": "rollup -c build/rollup.config.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "handlebars": "^4.0.11",
-    "handlebars-loader": "^1.7.0"
+    "handlebars-loader": "^1.7.0",
+    "rollup-plugin-handlebars-plus": "^0.2.3",
+    "rollup-plugin-root-import": "^0.2.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
