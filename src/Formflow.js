@@ -1,7 +1,7 @@
 import { uuid }  from './utils/workbee'
 import $ from 'jquery';
 import Logger from 'js-logger';
-import templateTable from '../templates/table.handlebars'
+import templateTable from '../templates/basic-table.handlebars'
 Logger.useDefaults();
 Logger.setLevel(Logger.DEBUG);
 
@@ -195,22 +195,36 @@ const Formflow = (($)=>{
 
         setData(data){
             let self = this;
+            this.data = []; // show data right now
+            this.hidedata = []; // toggle show
             Logger.debug("invoke setData function");
             data = $.extend(true,[],data);
-
+            //judge simple data or groups data
+            if(!$.isArray(data) && typeof data === 'object' && typeof data.show !== 'undefined' && data.hide !== 'undefined'){
+                // bind show data to plugin
+                this.data = data.show;
+                this.hidedata = data.hide;
+            }else if($.isArray(data)){
+                // bind show data to plugin
+                this.data = data;
+            }else{
+                throw Error("your data format not correct!!")
+            }
             // sort data
-            self._sortDatabyIndex(data);
-            Logger.debug("sortbyIndex data:",data);
+            self._sortDatabyIndex(this.data);
+            self._sortDatabyIndex(this.hidedata);
+            Logger.debug("sortbyIndex data:",this.data);
 
             // format data
-            data.forEach((val,index) => {
-                data[index] = self._formatColData(val)
+            this.data.forEach((val,index) => {
+                this.data[index] = self._formatColData(val)
+            });
+            this.hidedata.forEach((val,index) => {
+                this.hidedata[index] = self._formatColData(val)
             });
 
-            // bind data to plugin
-            this.data = data;
-
-            Logger.debug("merged data:",data)
+            Logger.debug("merged data:",this.data)
+            Logger.debug("merged hidedata:",this.hidedata)
         }
 
         /**
