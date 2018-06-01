@@ -51,7 +51,7 @@ const Formflow = (($)=>{
             // rowed data
             let rowedData = this._calcRowData(this.data,_layout);
             // apply data to templateTable
-            $element.empty().append(templateTable(rowedData));
+            $element.empty().append(templateTable({rowedData:rowedData,type:"show",showExtra:options.showExtra}));
             // fadeIn effects for tds
             if(options.animate){
                 let $tds = $element.find("[colId]");
@@ -377,6 +377,7 @@ const Formflow = (($)=>{
     Formflow.defaultOptions = {
         layout:4, // layout cols is 4
         kWidth:"200px",// pixel or scale
+        showExtra:false, // immediately show extra data
         animate:true, // enable animate ?
         autoResize:false // auto adjust width by adapt outer container
     };

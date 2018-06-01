@@ -1,6 +1,9 @@
-<table class="hc-formflow">
+{{#ifEquals this.type 'hide'}}
+    <a href="javascript:;" class="hc-formflow-toggle">展开更多</a>
+{{/ifEquals}}
+<table class="hc-formflow hc-formflow-{{this.type}}">
     <tbody>
-        {{#each this}}
+        {{#each this.rowedData}}
         <tr>
             {{#each this}}
                 <td class="hc-formflow-label"

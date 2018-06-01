@@ -42,7 +42,12 @@ module.exports = {
                 }
             },{
                 test:/\.handlebars$/,
-                loader:'handlebars-loader'
+                loader:'handlebars-loader',
+                query:{
+                    helperDirs:[
+                        path.resolve(__dirname,"../src/hbs_helpers")
+                    ]
+                }
             }
         ]
     }
