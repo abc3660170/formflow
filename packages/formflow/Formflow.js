@@ -1,18 +1,25 @@
-import { uuid }  from './utils/workbee'
+import { uuid }  from '../../src/utils/workbee'
 import $ from 'jquery';
 import Logger from 'js-logger';
-import templateTable from '../templates/basic-table.handlebars'
+import templateTable from '../../templates/basic-table.handlebars'
+import templateToggle from '../../templates/show-more-toggle.handlebars'
 Logger.useDefaults();
 Logger.setLevel(Logger.DEBUG);
 
 // export to window
 const Formflow = (($)=>{
+    const PREFIX = 'hc'
     const NAME = 'formflow';
-    const DATA_KEY = 'hc.formflow';
-    const EVENT_KEY = `.{DATA_KEY}`;
-
+    const DATA_KEY = `${PREFIX}.formflow`;
+    const EVENT_KEY = `.${DATA_KEY}`;
+    const ClassName = {
+        TOGGLE:`${PREFIX}-${NAME}-toggle`,
+        TOGGLE_SHOW : `${PREFIX}-${NAME}-toggle-show`,
+        TOGGLE_HIDE : `${PREFIX}-${NAME}-toggle-hide`
+    }
     const EVENT = {
-        'RESIZE':`resize${EVENT_KEY}`
+        'RESIZE':`resize${EVENT_KEY}`,
+        'CLICK_TOGGLE':`click.toggle.${EVENT_KEY}`
     };
 
     class Formflow {
@@ -38,23 +45,56 @@ const Formflow = (($)=>{
            this._renderTable(layout);
         }
 
+
+
         /**
          * render table style template doms
          * @param layout
          * @private
          */
         _renderTable(layout) {
-            let $element = this._element,options = this.options;
+            let $element = this._element,options = this.options,self = this;
+            this.$domMain = "" // created by this.data
+            this.$domExtra = ""// created by this.hideData
             const _layout = typeof layout === 'undefined' ? this.options.layout : layout;
             //save layout
             this.currentLayout = _layout;
             // rowed data
-            let rowedData = this._calcRowData(this.data,_layout);
+            let rowedData = this.rowedData = this._calcRowData(this.data,_layout);
             // apply data to templateTable
-            $element.empty().append(templateTable({rowedData:rowedData,type:"show",showExtra:options.showExtra}));
+            this.$domMain = $(templateTable({rowedData:rowedData,type:"show"}))
+            $element.empty().append(this.$domMain);
+            // judge if create toggleBar
+            if(this.hidedata.length > 0){
+                const toggleOptions = $.extend({},options.toggleTips,{
+                    showClass:ClassName.TOGGLE_SHOW,
+                    hideClass:ClassName.TOGGLE_HIDE,
+                    toggleClass:ClassName.TOGGLE
+                })
+                $element.append(templateToggle(toggleOptions))
+
+                //bind click event for toggle extraData
+                $element.off(EVENT.CLICK_TOGGLE);
+                $element.on(EVENT.CLICK_TOGGLE,`.${ClassName.TOGGLE}`,function(){
+                    $(this).toggleClass(ClassName.TOGGLE_HIDE).toggleClass(ClassName.TOGGLE_SHOW)
+                    self._toggleExtra()
+                })
+            }
             // fadeIn effects for tds
             if(options.animate){
-                let $tds = $element.find("[colId]");
+                self._fadeInDH(this.$domMain)
+            }
+        }
+
+        /**
+         * delay show
+         * @param $wrap
+         * @private
+         */
+        _fadeInDH($wrap) {
+            let options = this.options,self = this;
+            if(options.animate){
+                let $tds = $wrap.find("[colId]");
                 const timeDivide = Formflow.ANIMATETIME / $tds.size();
                 $tds
                     .hide()
@@ -65,12 +105,35 @@ const Formflow = (($)=>{
         }
 
         /**
+         * render extra hidden data
+         * @private
+         */
+        _renderTableExtra() {
+            let options = this.options;
+            let rowedData = this._calcRowData(this.hidedata,this.currentLayout);
+            this.rowedData = this.rowedData.concat(rowedData)
+            this.$domExtra = $(templateTable({rowedData:rowedData,type:"hide"}))
+            this.$domMain.after(this.$domExtra);
+            this._fadeInDH(this.$domExtra)
+        }
+
+        _toggleExtra() {
+            if (this.$domExtra !== '') {
+                this.$domExtra.toggle();
+            } else {
+                this._renderTableExtra();
+            }
+        }
+
+
+
+        /**
          * base container's width adjust col's width
          * @param width : must be pixel
          * @private
          */
-        _setContainerWidth(width) {
-            let options = this.options,rowedData = this.rowedData;
+        _setContainerWidth(rowedData,width) {
+            let options = this.options;
             const allColSpace = this.currentLayout * 2;
             rowedData.forEach( row => {
                 if(typeof options.kWidth === 'number') {
@@ -98,7 +161,7 @@ const Formflow = (($)=>{
          * @private
          */
         _resizeDom (width){
-            let $element = this._element,options = this.options,data = this.data;
+            let $element = this._element,options = this.options,data = this.data.concat(this.hidedata);
             if (typeof options.kWidth === 'string'){
                 Logger.debug("resizing dom ...");
                 this._setContainerWidth(width || $element.width());
@@ -158,12 +221,11 @@ const Formflow = (($)=>{
                 row.push(col)
             });
 
-            this.rowedData = rowedData;
             // expand last col to row's end
-            this._expandSpace();
+            this._expandSpace(rowedData);
 
             //use width property with % unit
-            this._setContainerWidth($element.width());
+            this._setContainerWidth(rowedData,$element.width());
             Logger.debug("calcRowData",rowedData);
             return rowedData
         }
@@ -175,9 +237,9 @@ const Formflow = (($)=>{
          * @returns {*}
          * @private
          */
-        _expandSpace() {
-            let options = this.options,rowsData = this.rowedData;
-            rowsData.forEach( row => {
+        _expandSpace(rowedData) {
+            let options = this.options;
+            rowedData.forEach( row => {
                 let emptyColNum = options.layout * 2;
                 row.forEach( col => {
                     emptyColNum = emptyColNum - col.kColspan - col.vColspan
@@ -185,7 +247,7 @@ const Formflow = (($)=>{
                 if(emptyColNum > 0)
                     row[row.length - 1].vColspan = row[row.length - 1].vColspan + emptyColNum
             });
-            return rowsData
+            return rowedData
         }
 
         _formatColData(data) {
@@ -198,15 +260,16 @@ const Formflow = (($)=>{
             this.data = []; // show data right now
             this.hidedata = []; // toggle show
             Logger.debug("invoke setData function");
-            data = $.extend(true,[],data);
+
             //judge simple data or groups data
             if(!$.isArray(data) && typeof data === 'object' && typeof data.show !== 'undefined' && data.hide !== 'undefined'){
                 // bind show data to plugin
-                this.data = data.show;
-                this.hidedata = data.hide;
+                this.data = $.extend(true,[],data.show);
+                this.hidedata = $.extend(true,[],data.hide);
             }else if($.isArray(data)){
                 // bind show data to plugin
                 this.data = data;
+                data = $.extend(true,[],data);
             }else{
                 throw Error("your data format not correct!!")
             }
@@ -232,7 +295,10 @@ const Formflow = (($)=>{
          * @returns {Array|*}
          */
         getData() {
-            return $.extend(true,[],this.data);
+            return this.hidedata.length ===0 ? $.extend(true,[],this.data) : $.extend(true,{},{
+                show:this.data,
+                hide:this.hidedata
+            })
         }
 
         /**
@@ -377,8 +443,11 @@ const Formflow = (($)=>{
     Formflow.defaultOptions = {
         layout:4, // layout cols is 4
         kWidth:"200px",// pixel or scale
-        showExtra:false, // immediately show extra data
         animate:true, // enable animate ?
+        toggleTips:{ // show extra data by toggle opt,its names pairs
+          "showTip":"展开更多",
+          "hideTip":"收起更多"
+        },
         autoResize:false // auto adjust width by adapt outer container
     };
 

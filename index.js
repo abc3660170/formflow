@@ -1,2 +1,2 @@
-require("./src/Formflow");
+require("./packages/formflow/Formflow");
 

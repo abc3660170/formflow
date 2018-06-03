@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8" />
     <title>test</title>
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/formflow.css">
-    <script src="src/utils/es5-shim.min.js"></script>
-    <script src="src/utils/es5-sham.min.js"></script>
-    <script src="src/utils/jquery.js"></script>
-    <script src="src/utils/logger.js"></script>
-    <script src="dist/bundle.js"></script>
+    <link rel="stylesheet" href="../../css/reset.css">
+    <link rel="stylesheet" href="../../css/formflow.css">
+    <script src="../../src/utils/es5-shim.min.js"></script>
+    <script src="../../src/utils/es5-sham.min.js"></script>
+    <script src="../../src/utils/jquery.js"></script>
+    <script src="../../src/utils/logger.js"></script>
+    <script src="../../dist/bundle.js"></script>
 </head>
 <body style="margin: 100px;">
     <div style="margin-bottom: 20px;">
@@ -30,8 +30,8 @@
     var currentLayout;
     $(document).ready(function(){
         ff = $("#form").formflow({"animate":true});
-        $.get( "../test/data.json", function( data ) {
-            ff.formflow("setData",data)
+        $.get( "../../test/data.json", function( data ) {
+            ff.formflow("setData",{show:data,hide:data})
             ff.formflow("render")
             $("#selectCol").on("change",function(){
                 currentLayout = $(this).val()
@@ -44,7 +44,7 @@
         });
 
         $("#ajaxSeg").on("click",function(){
-            $.get( "../test/data.json", function( data ) {
+            $.get( "../../test/data.json", function( data ) {
                 data[0].querying = true
                 data[0].id = "test0"
                 data[2].querying = true

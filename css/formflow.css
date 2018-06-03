@@ -1,14 +1,20 @@
 .hc-formflow{ table-layout: fixed;}
+.hc-formflow-hide{ margin-top: -1px;}
 .hc-formflow > tbody > tr { border: 1px solid #dadee4}
 .hc-formflow td[class^="hc-formflow-"]{ padding: 10px 0 10px 10px; word-wrap: break-word; word-break: break-all;vertical-align:middle}
 .hc-formflow-label{ background: #EDF4FF;}
+
+.hc-formflow-toggle-show .hideMoreTip{ display: none;}
+.hc-formflow-toggle-hide .showMoreTip{ display: none;}
 
 .spinner {
     margin: 0 auto;
     width: 80%;
     text-align: center;
 }
-
+/*
+loading style
+ */
 .spinner > div {
     width: 8px;
     height: 8px;

@@ -23,7 +23,7 @@ module.exports = {
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             title: 'Hot Module Replacement',
-            template: 'demo/index.html'
+            template: 'examples/formflow/index.html'
         }),
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
