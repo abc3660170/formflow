@@ -17,7 +17,7 @@ glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
             cssSrc:"css",
             parentClassName:"honeycomb-icon",
             baseName:'icon2',
-            extend:`${BASE_IMAGES_DIR}/default/chaos`
+            extend:`${BASE_IMAGES_DIR}/themes/default/chaos`
         }))
     })
     Promise.all(chaosPromises)

@@ -11,7 +11,7 @@ const
     HOVER_FLAG = '-hover',
     CURRENT_FLAG = '-current',
     DISABLED_FLAG = '-disabled';
-function genImages(inputFolder,outputFolder,options,callback) {
+function genImages(inputFolder,outputFolder,options) {
     return new Promise((resolve,reject) => {
         glob(`${inputFolder}/**/+(*.png|*.jpg)`,{"ignore":[`${inputFolder}/**/+(*${HOVER_FLAG}.*|*${CURRENT_FLAG}.*|*${DISABLED_FLAG}.*)`]},(error,files) => {
             if (error)
@@ -21,6 +21,24 @@ function genImages(inputFolder,outputFolder,options,callback) {
             // clean dest folders
             Logger.log("清理输出目录... ",outputFolder)
             fsExtra.emptyDir(outputFolder).then(() => {
+                return new Promise((resolve,reject) => {
+                    // extract images from options.extend
+                    glob(`${options.extend}/**/+(*.png|*.jpg)`,{"ignore":[`${options.extend}/**/+(*${HOVER_FLAG}.*|*${CURRENT_FLAG}.*|*${DISABLED_FLAG}.*)`]},(error,filesExtend) => {
+                        if (error)
+                            throw error;
+                        if(files.length === 0)
+                            return reject(`${inputFolder}被继承的主题目录下没有图片！`);
+                        for( let i = 0; i < filesExtend.length; i++){
+                            files.forEach(file => {
+                                if(file.replace(inputFolder,"") === filesExtend[i].replace(options.extend,"")){
+                                    filesExtend[i] = file
+                                }
+                            })
+                        }
+                        resolve(filesExtend)
+                    })
+                })
+            }).then((files) => {
                 Logger.log("目录已经清理完毕",outputFolder)
                 // find default state image exclude hover 、current、disabled
                 let defaultFiles = [],
@@ -39,6 +57,7 @@ function genImages(inputFolder,outputFolder,options,callback) {
                     disabledOutputImageFile = `${outputFolder}/${options.imgSrc}/${disabledOutputImageName}`;
 
                 let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.css`;
+
 
                 defaultFiles = files;
 
