@@ -14,9 +14,9 @@ glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
         let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
         chaosPromises.push(imageTool.genImages(`${themeDir}/chaos`,`${BASE_IMAGES_DIR}/dist/${theme}`,{
             imgSrc:"img/chaos",
-            cssSrc:"./",
-            parentClassName:"honeycomb-icon",
-            baseName:'icon2',
+            cssSrc:"css",
+            parentClassName:"hc-chaos",
+            baseName:'hc-chaos',
             extend:`${BASE_IMAGES_DIR}/themes/default/chaos`
         }))
     })
