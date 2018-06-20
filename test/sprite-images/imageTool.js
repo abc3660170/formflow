@@ -5,15 +5,24 @@ let path = require('path')
 let fsExtra = require('fs-extra');
 let Logger = require('js-logger')
 let mkdirp = require('mkdirp')
+let tools = require("../../cli-tools/commonTools");
 
 Logger.useDefaults();
 const
-    HOVER_FLAG = '-hover',
-    CURRENT_FLAG = '-current',
-    DISABLED_FLAG = '-disabled';
+    HOVER_FILE_FLAG    = '-hover',
+    CURRENT_FILE_FLAG  = '-current',
+    DISABLED_FILE_FLAG = '-disabled';
+const
+    DEFAULT_CLASS  = 'hc-default',
+    HOVER_CLASS    = 'hc-hover',
+    CURRENT_CLASS  = 'hc-current',
+    DISABLED_CLASS = 'hc-disabled';
 function genImages(inputFolder,outputFolder,options) {
     return new Promise((resolve,reject) => {
-        glob(`${inputFolder}/**/+(*.png|*.jpg)`,{"ignore":[`${inputFolder}/**/+(*${HOVER_FLAG}.*|*${CURRENT_FLAG}.*|*${DISABLED_FLAG}.*)`]},(error,files) => {
+        inputFolder = tools.formatUrl(inputFolder);
+        outputFolder = tools.formatUrl(outputFolder);
+        options.extend = tools.formatUrl(options.extend);
+        glob(`${inputFolder}/**/+(*.png|*.jpg)`,{"ignore":[`${inputFolder}/**/+(*${HOVER_FILE_FLAG}.*|*${CURRENT_FILE_FLAG}.*|*${DISABLED_FILE_FLAG}.*)`]},(error,files) => {
             if (error)
                 throw error;
             if(files.length === 0)
@@ -23,7 +32,7 @@ function genImages(inputFolder,outputFolder,options) {
             fsExtra.emptyDir(outputFolder).then(() => {
                 return new Promise((resolve,reject) => {
                     // extract images from options.extend
-                    glob(`${options.extend}/**/+(*.png|*.jpg)`,{"ignore":[`${options.extend}/**/+(*${HOVER_FLAG}.*|*${CURRENT_FLAG}.*|*${DISABLED_FLAG}.*)`]},(error,filesExtend) => {
+                    glob(`${options.extend}/**/+(*.png|*.jpg)`,{"ignore":[`${options.extend}/**/+(*${HOVER_FILE_FLAG}.*|*${CURRENT_FILE_FLAG}.*|*${DISABLED_FILE_FLAG}.*)`]},(error,filesExtend) => {
                         if (error)
                             throw error;
                         if(files.length === 0)
@@ -56,7 +65,7 @@ function genImages(inputFolder,outputFolder,options) {
                     currentOutputImageFile = `${outputFolder}/${options.imgSrc}/${currentOutputImageName}`,
                     disabledOutputImageFile = `${outputFolder}/${options.imgSrc}/${disabledOutputImageName}`;
 
-                let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.css`;
+                let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.scss`;
 
 
                 defaultFiles = files;
@@ -70,9 +79,9 @@ function genImages(inputFolder,outputFolder,options) {
                         fileCheckerrorMsg.push(`${imageDefault}文件格式不对！`)
                     let noExtFile = /(.*)\./.exec(imageDefault)[1];
                     let ext = /\.(.+)/.exec(imageDefault)[1]
-                    let expectedHover = `${noExtFile}${HOVER_FLAG}.${ext}`,
-                        expectedCurrent = `${noExtFile}${CURRENT_FLAG}.${ext}`,
-                        expectedDisabled = `${noExtFile}${DISABLED_FLAG}.${ext}`;
+                    let expectedHover = `${noExtFile}${HOVER_FILE_FLAG}.${ext}`,
+                        expectedCurrent = `${noExtFile}${CURRENT_FILE_FLAG}.${ext}`,
+                        expectedDisabled = `${noExtFile}${DISABLED_FILE_FLAG}.${ext}`;
 
                     // fillup hover file
                     if(!fs.existsSync(expectedHover)){
@@ -132,14 +141,35 @@ function genImages(inputFolder,outputFolder,options) {
                     genImageByState(currentFiles,currentOutputImageFile),
                     genImageByState(disabledFiles,disabledOutputImageFile)
                 ]).then(() => {
-                    Logger.log(`向${outputFolder}中输出文件完成`)
+                    Logger.log(`向${outputFolder}中输出文件完成,开始构建scss文件`)
                     return new Promise((resolve,reject) => {
                         let relativeImagePath = path.relative(/(.+)\//.exec(cssOutputFile)[1],/(.+)\//.exec(defaultOutputImageFile)[1]).replace(/\\/g,'/');
-                        stylesheet += `.${options.parentClassName} { display:inline-block; background-image:url("${relativeImagePath}/${defaultOutputImageName}")}\n`
+                        stylesheet += `/****** default hover current disable 4 state dest files ******/\n`;
+                        stylesheet += `.${options.parentClassName},\n`+
+                                       `.${DEFAULT_CLASS} .${options.parentClassName}{ \n`+
+                                       `    display:inline-block;\n `+
+                                       `   background-image:url("${relativeImagePath}/${defaultOutputImageName}")\n`+
+                                       `}\n\n`
+                        stylesheet += `.${options.parentClassName}.${HOVER_CLASS},\n`+
+                                        `.${HOVER_CLASS} .${options.parentClassName}{ \n`+
+                                        `   background-image:url("${relativeImagePath}/${hoverOutputImageName}")\n`+
+                                        `}\n\n`
+                        stylesheet += `.${options.parentClassName}.${CURRENT_CLASS},\n`+
+                                        `.${CURRENT_CLASS} .${options.parentClassName}{ \n`+
+                                        `   background-image:url("${relativeImagePath}/${currentOutputImageName}")\n`+
+                                        `}\n\n`
+                        stylesheet += `.${options.parentClassName}.${DISABLED_CLASS},\n`+
+                                        `.${DISABLED_CLASS} .${options.parentClassName}{ \n`+
+                                        `   background-image:url("${relativeImagePath}/${disabledOutputImageName}")\n`+
+                                        `}\n\n`
+                        stylesheet += `/****** background-position below ******/\n`;
+
+
                         Object.keys(cssSpriteStyle).forEach(key => {
+                            stylesheet += `/* source file: ${/themes\/(.+)/.exec(key)[1]} */\n`;
                             let ClassObject = cssSpriteStyle[key];
                             let className = /([^\/]+\/?[^\/]+)\./.exec(key)[1].replace(/\//g,'-');
-                            stylesheet += `.${options.parentClassName}.${className} {width: ${ClassObject.width}px; height: ${ClassObject.height}px; background-position:-${ClassObject.x}px -${ClassObject.y}px; }\n`
+                            stylesheet += `.${options.parentClassName}.${className} {width: ${ClassObject.width}px; height: ${ClassObject.height}px; background-position:-${ClassObject.x}px -${ClassObject.y}px; }\n\n`
                         })
                         mkdirp(/(.*)[\/\\]/.exec(cssOutputFile)[1],(error) => {
                             if(error)
@@ -148,6 +178,7 @@ function genImages(inputFolder,outputFolder,options) {
                                 if(error)
                                     return reject(error)
                                 resolve()
+                                Logger.log("scss 文件构建完成")
                             })
                         })
                     })
