@@ -139,17 +139,21 @@ function genImages(inputFolder,outputFolder,options) {
                 genImage(disabledFiles,disabledOutputImageFile)
             ]).then((cssSpriteStyles) => {
                 Logger.log(`向${outputFolder}中输出文件完成,开始构建scss文件`)
-                let cssSpriteStyle = cssSpriteStyles[0];
-                genScss(cssSpriteStyle).then(() => {
-                    Logger.log("genImages全部完成",outputFolder)
-                    resolve()
-                }).catch((error) => {
-                    Logger.error(error);
-                    process.exit(0);
+                return new Promise((resolve,reject) => {
+                    let cssSpriteStyle = cssSpriteStyles[0];
+                    genScss(cssSpriteStyle).then(() => {
+                        Logger.log("genImages全部完成",outputFolder)
+                        resolve(cssSpriteStyle)
+                    }).catch((error) => {
+                        return reject(error)
+                    })
                 })
-            },(error) => {
-                //throw error;
-                reject(error)
+            }).then((cssSpriteStyle) => {
+                genApi(cssSpriteStyle).then(() => {
+                    resolve();
+                }).catch(error => {
+                    reject(error)
+                })
             }).catch(function(error){
                 // handle gen images exception
                 Logger.error(error)
@@ -220,20 +224,21 @@ function genImages(inputFolder,outputFolder,options) {
         })
     }
     function genApi(spriteStylesheet){
-        return new Promise((resovle,reject) => {
+        return new Promise((resolve,reject) => {
             if(typeof options.apiSrc === 'undefined'){
                 Logger.log("没有配置apiSrc,无需生成API",outputFolder);
-                return resovle();
+                return resolve();
             }
             let classList = [];
             Object.keys(spriteStylesheet).forEach(key => {
-                stylesheet += `/* source file: ${/themes\/(.+)/.exec(key)[1]} */\n`;
                 classList.push(/([^\/]+\/?[^\/]+)\./.exec(key)[1].replace(/\//g,'-'));
             })
             // prepare date for hbs template
+            let cssUrl = path.relative(/(.+)\//.exec(apiOutputFile)[1],/(.+)\//.exec(cssOutputFile)[1]).replace(/\\/g,'/')+`/${options.baseName}.css`;
             let apiData = {
                 classList:classList,
                 parentClassName:options.parentClassName,
+                cssUrl:cssUrl,
                 stateClass:{
                     "default":DEFAULT_CLASS,
                     "hover":HOVER_CLASS,
@@ -241,19 +246,23 @@ function genImages(inputFolder,outputFolder,options) {
                     "disabled":DISABLED_CLASS
                 }
             }
-            fs.readFile("../hbs/hc-icons-32.handleBars",(err,data) => {
-
-            });
-            mkdirp(/(.*)[\/\\]/.exec(apiOutputFile)[1],(error) => {
-                if(error)
-                    return reject(error)
-                fs.writeFile(apiOutputFile,stylesheet,(error) => {
+            fs.readFile(path.resolve(__dirname,"./hbs/icons.handleBars"),(err,data) => {
+                if(err){
+                    Logger.error("API文件读取错误",err)
+                    return reject(err);
+                }
+                mkdirp(/(.*)[\/\\]/.exec(apiOutputFile)[1],(error) => {
                     if(error)
                         return reject(error)
-                    resolve()
-                    Logger.log("api文件构建完成",outputFolder)
+                    let template = handleBars.compile(data.toString())
+                    fs.writeFile(apiOutputFile,template(apiData),(error) => {
+                        if(error)
+                            return reject(error)
+                        resolve()
+                        Logger.log("api文件构建完成",outputFolder)
+                    })
                 })
-            })
+            });
         })
     }
 }

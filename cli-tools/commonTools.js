@@ -8,7 +8,7 @@ function deleteFiles(files, callback){
     files.forEach(function(filepath){
         fs.unlink(filepath, function(err) {
             i--;
-            if (err && err.errno !== -4058) {
+            if (err && err.errno !== -4058 && err.errno !== -2) {
                 callback(err);
                 return;
             } else if (i <= 0) {
