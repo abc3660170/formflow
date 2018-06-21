@@ -5,7 +5,8 @@ let path = require('path')
 let fsExtra = require('fs-extra');
 let Logger = require('js-logger')
 let mkdirp = require('mkdirp')
-let tools = require("../../cli-tools/commonTools");
+let tools = require("../commonTools");
+let handleBars = require('handleBars');
 
 Logger.useDefaults();
 function genImages(inputFolder,outputFolder,options) {
@@ -39,7 +40,9 @@ function genImages(inputFolder,outputFolder,options) {
         currentOutputImageFile = `${outputFolder}/${options.imgSrc}/${currentOutputImageName}`,
         disabledOutputImageFile = `${outputFolder}/${options.imgSrc}/${disabledOutputImageName}`;
     // output css file with path
-    let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.scss`;
+    let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.css`;
+    // output api html with path
+    let apiOutputFile = `${outputFolder}/${options.apiSrc}/${options.baseName}.html`;
 
     return new Promise((resolve,reject) => {
         /**
@@ -51,16 +54,20 @@ function genImages(inputFolder,outputFolder,options) {
         glob(`${inputFolder}/**/+(*.png|*.jpg)`,{"ignore":[`${inputFolder}/**/+(*${HOVER_FILE_FLAG}.*|*${CURRENT_FILE_FLAG}.*|*${DISABLED_FILE_FLAG}.*)`]},(error,files) => {
             if (error)
                 throw error;
-            if(files.length === 0)
-                return reject(`${inputFolder}目录下没有图片！`);
+            // if(files.length === 0)
+            //     return reject(`${inputFolder}目录下没有图片！`);
             // clean dest folders
-            Logger.log("清理输出目录... ",outputFolder)
-            fsExtra.emptyDir(outputFolder).then(() => {
+            tools.deleteFiles([defaultOutputImageFile,hoverOutputImageFile,currentOutputImageFile,disabledOutputImageFile,cssOutputFile],error => {
+                Logger.log("清理输出目录... ",outputFolder)
+                if(error){
+                    Logger.error("目录清理失败",outputFolder)
+                    return reject(error)
+                }
                 return new Promise((resolve,reject) => {
                     glob(`${options.extend}/**/+(*.png|*.jpg)`,{"ignore":[`${options.extend}/**/+(*${HOVER_FILE_FLAG}.*|*${CURRENT_FILE_FLAG}.*|*${DISABLED_FILE_FLAG}.*)`]},(error,filesExtend) => {
                         if (error)
                             throw error;
-                        if(files.length === 0)
+                        if(filesExtend.length === 0)
                             return reject(`${inputFolder}被继承的主题目录下没有图片！`);
                         for( let i = 0; i < filesExtend.length; i++){
                             files.forEach(file => {
@@ -88,7 +95,8 @@ function genImages(inputFolder,outputFolder,options) {
             let fileCheckerrorMsg = [];
             defaultFiles.forEach((imageDefault) => {
                 let imageDefaultName = imageDefault.substring(imageDefault.lastIndexOf('/') + 1);
-                if(/[A-Z]/.test(imageDefaultName))
+                // filename cant include : _ , uppercase char , more then one dot
+                if(/([_A-Z]|\..*\.)/.test(imageDefaultName))
                     fileCheckerrorMsg.push(`${imageDefault}文件格式不对！`)
                 let noExtFile = /(.*)\./.exec(imageDefault)[1];
                 let ext = /\.(.+)/.exec(imageDefault)[1]
@@ -134,6 +142,7 @@ function genImages(inputFolder,outputFolder,options) {
                 let cssSpriteStyle = cssSpriteStyles[0];
                 genScss(cssSpriteStyle).then(() => {
                     Logger.log("genImages全部完成",outputFolder)
+                    resolve()
                 }).catch((error) => {
                     Logger.error(error);
                     process.exit(0);
@@ -206,6 +215,43 @@ function genImages(inputFolder,outputFolder,options) {
                         return reject(error)
                     resolve()
                     Logger.log("scss 文件构建完成")
+                })
+            })
+        })
+    }
+    function genApi(spriteStylesheet){
+        return new Promise((resovle,reject) => {
+            if(typeof options.apiSrc === 'undefined'){
+                Logger.log("没有配置apiSrc,无需生成API",outputFolder);
+                return resovle();
+            }
+            let classList = [];
+            Object.keys(spriteStylesheet).forEach(key => {
+                stylesheet += `/* source file: ${/themes\/(.+)/.exec(key)[1]} */\n`;
+                classList.push(/([^\/]+\/?[^\/]+)\./.exec(key)[1].replace(/\//g,'-'));
+            })
+            // prepare date for hbs template
+            let apiData = {
+                classList:classList,
+                parentClassName:options.parentClassName,
+                stateClass:{
+                    "default":DEFAULT_CLASS,
+                    "hover":HOVER_CLASS,
+                    "current":CURRENT_CLASS,
+                    "disabled":DISABLED_CLASS
+                }
+            }
+            fs.readFile("../hbs/hc-icons-32.handleBars",(err,data) => {
+
+            });
+            mkdirp(/(.*)[\/\\]/.exec(apiOutputFile)[1],(error) => {
+                if(error)
+                    return reject(error)
+                fs.writeFile(apiOutputFile,stylesheet,(error) => {
+                    if(error)
+                        return reject(error)
+                    resolve()
+                    Logger.log("api文件构建完成",outputFolder)
                 })
             })
         })
