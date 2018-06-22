@@ -10,7 +10,7 @@ let handleBars = require('handleBars');
 
 Logger.useDefaults();
 function genImages(inputFolder,outputFolder,options) {
-
+    typeof options.isSprite === 'undefined' ? options.isSprite = true : options.isSprite = false;
     // pattern of 4 state images for match
     const
         HOVER_FILE_FLAG    = '-hover',
@@ -132,17 +132,25 @@ function genImages(inputFolder,outputFolder,options) {
 
             //generate all four state sprite images
             Logger.log(`开始向${outputFolder}中输出文件...`)
-            Promise.all([
-                genImage(defaultFiles,defaultOutputImageFile),
-                genImage(hoverFiles,hoverOutputImageFile),
-                genImage(currentFiles,currentOutputImageFile),
-                genImage(disabledFiles,disabledOutputImageFile)
-            ]).then((cssSpriteStyles) => {
+
+            let processFiles = [];
+            if(options.isSprite){
+                processFiles = [
+                    genImage(defaultFiles,defaultOutputImageFile),
+                    genImage(hoverFiles,hoverOutputImageFile),
+                    genImage(currentFiles,currentOutputImageFile),
+                    genImage(disabledFiles,disabledOutputImageFile)
+                ];
+            }else{
+                let ouputDir = /(.+)\//.exec(defaultOutputImageFile)[1];
+                processFiles = [genImage(defaultFiles,ouputDir)];
+            }
+            Promise.all(processFiles).then((cssSpriteStyles) => {
                 Logger.log(`向${outputFolder}中输出文件完成,开始构建scss文件`)
                 return new Promise((resolve,reject) => {
                     let cssSpriteStyle = cssSpriteStyles[0];
                     genScss(cssSpriteStyle).then(() => {
-                        Logger.log("genImages全部完成",outputFolder)
+                        Logger.log("genScss全部完成",outputFolder)
                         resolve(cssSpriteStyle)
                     }).catch((error) => {
                         return reject(error)
@@ -161,6 +169,14 @@ function genImages(inputFolder,outputFolder,options) {
         })
     })
     function genImage(files,output) {
+        if(options.isSprite){
+            return genSpriteImage(files,output)
+        }else{
+            return genlonelyImage(files,output)
+        }
+    }
+
+    function genSpriteImage(files,output){
         return new Promise((resolve,reject) => {
             Spritesmith.run({src:files},(error,result) => {
                 if(error) {
@@ -180,7 +196,47 @@ function genImages(inputFolder,outputFolder,options) {
             })
         })
     }
-    function genScss(spriteStylesheet){
+
+    function genlonelyImage(files,output){
+        return new Promise((resolve,reject) => {
+            let stylesArray = [];
+            let count = 0;
+            files.forEach(file => {
+                Spritesmith.run({src:[file]},(error,result) => {
+                    if(error) {
+                        //todo error cant catch
+                        Logger.error(error)
+                        return reject(error);
+                    }
+                    let fileName = /\/([^\/]*)$/.exec(file)[1];
+                    mkdirp(output,(error) => {
+                        if(error)
+                            return reject(error);
+                        fs.writeFile(`${output}/${fileName}`,result.image,(error) => {
+                            if(error)
+                                return reject(error)
+                            stylesArray.push(result.coordinates)
+                            count++;
+                            if(count === files.length){
+                                resolve(stylesArray);
+                            }
+                        })
+                    })
+
+                })
+            })
+        })
+    }
+    function genScss(stylesheets){
+        if(options.isSprite){
+            return genSateScss(stylesheets)
+        }else{
+            return genLonelyScss(stylesheets)
+        }
+    }
+
+
+    function genSateScss(stylesheetObj){
         let stylesheet = "";
         return new Promise((resolve,reject) => {
             let relativeImagePath = path.relative(/(.+)\//.exec(cssOutputFile)[1],/(.+)\//.exec(defaultOutputImageFile)[1]).replace(/\\/g,'/');
@@ -205,9 +261,9 @@ function genImages(inputFolder,outputFolder,options) {
             stylesheet += `/****** background-position below ******/\n`;
 
 
-            Object.keys(spriteStylesheet).forEach(key => {
+            Object.keys(stylesheetObj).forEach(key => {
                 stylesheet += `/* source file: ${/themes\/(.+)/.exec(key)[1]} */\n`;
-                let ClassObject = spriteStylesheet[key];
+                let ClassObject = stylesheetObj[key];
                 let className = /([^\/]+\/?[^\/]+)\./.exec(key)[1].replace(/\//g,'-');
                 stylesheet += `.${options.parentClassName}.${className} {width: ${ClassObject.width}px; height: ${ClassObject.height}px; background-position:-${ClassObject.x}px -${ClassObject.y}px; }\n\n`
             })
@@ -223,6 +279,36 @@ function genImages(inputFolder,outputFolder,options) {
             })
         })
     }
+    function genLonelyScss(stylesheetArr){
+        let stylesheet = "";
+        return new Promise((resolve,reject) => {
+            let relativeImagePath = path.relative(/(.+)\//.exec(cssOutputFile)[1],/(.+)\//.exec(defaultOutputImageFile)[1]).replace(/\\/g,'/');
+            stylesheetArr.forEach(styleObject => {
+                Object.keys(styleObject).forEach(key => {
+                    let ClassObject = styleObject[key];
+                    let className = /([^\/]+\/?[^\/]+)\./.exec(key)[1].replace(/\//g,'-');
+                    let fileName = /\/([^\/]+)$/.exec(key)[1]
+                    stylesheet += `.${options.parentClassName}.${className} {\n`+
+                        `    display:inline-block;\n `+
+                        `   width: ${ClassObject.width}px;`+
+                        `   height: ${ClassObject.height}px;`+
+                        `   background-image:url("${relativeImagePath}/${fileName}");\n`+
+                        `}\n\n`
+                })
+            });
+            mkdirp(/(.*)[\/\\]/.exec(cssOutputFile)[1],(error) => {
+                if(error)
+                    return reject(error)
+                fs.writeFile(cssOutputFile,stylesheet,(error) => {
+                    if(error)
+                        return reject(error)
+                    resolve()
+                    Logger.log("scss 文件构建完成")
+                })
+            })
+        })
+    }
+
     function genApi(spriteStylesheet){
         return new Promise((resolve,reject) => {
             if(typeof options.apiSrc === 'undefined'){

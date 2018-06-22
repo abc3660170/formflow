@@ -33,29 +33,59 @@ new Promise((resolve,reject) => {
             })
     })
 }).then(() => {
-    /****** 内部组件使用的 单/多 状态图标 ******/
-    glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
-        let chaosPromises = [];
-        themesDirs.forEach(themeDir => {
-            let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
-            chaosPromises.push(imageTool.genImages(`${themeDir}/hc-icons-32`,`${BASE_IMAGES_DIR}/dist/${theme}`,{
-                imgSrc:"img/hc-icons-32",
-                cssSrc:"css",
-                apiSrc:"api",
-                parentClassName:"hc-icons-32",
-                baseName:'hc-icons-32',
-                extend:`${BASE_IMAGES_DIR}/themes/default/hc-icons-32`
-            }))
+    /****** 公共图标库 ******/
+    return new Promise((resolve,reject) => {
+        glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
+            let chaosPromises = [];
+            themesDirs.forEach(themeDir => {
+                let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
+                chaosPromises.push(imageTool.genImages(`${themeDir}/hc-icons-32`,`${BASE_IMAGES_DIR}/dist/${theme}`,{
+                    imgSrc:"img/hc-icons-32",
+                    cssSrc:"css",
+                    apiSrc:"api",
+                    parentClassName:"hc-icons-32",
+                    baseName:'hc-icons-32',
+                    extend:`${BASE_IMAGES_DIR}/themes/default/hc-icons-32`
+                }))
+            })
+            Promise.all(chaosPromises)
+                .then(() => {
+                    Logger.log("============= 公共图标库 流程结束！=============")
+                    resolve()
+                })
+                .catch(error => {
+                    console.log(error)
+                    process.exit(0)
+                })
         })
-        Promise.all(chaosPromises)
-            .then(() => {
-                Logger.log("============= 公共图标库 流程结束！=============")
+    })
+
+}).then(() =>{
+    /****** gif 图之类的单个文件 ******/
+    return new Promise((resolve,reject) => {
+        glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
+            let chaosPromises = [];
+            themesDirs.forEach(themeDir => {
+                let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
+                chaosPromises.push(imageTool.genImages(`${themeDir}/loneRanger`,`${BASE_IMAGES_DIR}/dist/${theme}`,{
+                    imgSrc:"img/lonely",
+                    cssSrc:"css",
+                    parentClassName:"hc-lonely",
+                    baseName:'hc-lonely',
+                    isSprite:false,
+                    extend:`${BASE_IMAGES_DIR}/themes/default/loneRanger`
+                }))
             })
-            .catch(error => {
-                console.log("false")
-                console.log(error)
-                process.exit(0)
-            })
+            Promise.all(chaosPromises)
+                .then(() => {
+                    Logger.log("============= gif 流程结束！=============")
+                    resolve()
+                })
+                .catch(error => {
+                    console.log(error)
+                    process.exit(0)
+                })
+        })
     })
 })
 
