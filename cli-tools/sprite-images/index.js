@@ -27,9 +27,9 @@ new Promise((resolve,reject) => {
                 resolve()
             })
             .catch(error => {
-                console.log("false")
-                console.log(error)
-                process.exit(0)
+                setTimeout(function(){
+                    throw error;
+                })
             })
     })
 }).then(() => {
@@ -54,8 +54,9 @@ new Promise((resolve,reject) => {
                     resolve()
                 })
                 .catch(error => {
-                    console.log(error)
-                    process.exit(0)
+                    setTimeout(function(){
+                        throw error;
+                    })
                 })
         })
     })
@@ -82,8 +83,9 @@ new Promise((resolve,reject) => {
                     resolve()
                 })
                 .catch(error => {
-                    console.log(error)
-                    process.exit(0)
+                    setTimeout(function(){
+                        throw error;
+                    })
                 })
         })
     })

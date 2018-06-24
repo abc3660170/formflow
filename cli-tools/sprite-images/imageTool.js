@@ -81,8 +81,9 @@ function genImages(inputFolder,outputFolder,options) {
                 }).then((expectedFiles) => {
                     resolve(expectedFiles);
                 }).catch((error) => {
-                    Logger.error(error);
-                    process.exit(0)
+                    setTimeout(function(){
+                        throw error;
+                    })
                 })
             })
         })
@@ -160,12 +161,16 @@ function genImages(inputFolder,outputFolder,options) {
                 genApi(cssSpriteStyle).then(() => {
                     resolve();
                 }).catch(error => {
-                    reject(error)
+                    return reject(error);
                 })
             }).catch(function(error){
                 // handle gen images exception
-                Logger.error(error)
+                return reject(error);
             })
+        })
+    }).catch((error) => {
+        setTimeout(function(){
+            throw error;
         })
     })
     function genImage(files,output) {
@@ -203,11 +208,8 @@ function genImages(inputFolder,outputFolder,options) {
             let count = 0;
             files.forEach(file => {
                 Spritesmith.run({src:[file]},(error,result) => {
-                    if(error) {
-                        //todo error cant catch
-                        Logger.error(error)
+                    if(error)
                         return reject(error);
-                    }
                     let fileName = /\/([^\/]*)$/.exec(file)[1];
                     mkdirp(output,(error) => {
                         if(error)
