@@ -40,7 +40,7 @@ function genImages(inputFolder,outputFolder,options) {
         currentOutputImageFile = `${outputFolder}/${options.imgSrc}/${currentOutputImageName}`,
         disabledOutputImageFile = `${outputFolder}/${options.imgSrc}/${disabledOutputImageName}`;
     // output css file with path
-    let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.css`;
+    let cssOutputFile = `${outputFolder}/${options.cssSrc}/${options.baseName}.scss`;
     // output api html with path
     let apiOutputFile = `${outputFolder}/${options.apiSrc}/${options.baseName}.html`;
 
