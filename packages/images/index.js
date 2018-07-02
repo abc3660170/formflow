@@ -60,14 +60,21 @@ function icons(){
             let chaosPromises = [];
             themesDirs.forEach(themeDir => {
                 let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
-                chaosPromises.push(imageTool.genImages(`${themeDir}/hc-icons-32`,`${BASE_IMAGES_DIR}/dist/${theme}`,{
-                    imgSrc:"img/hc-icons-32",
-                    cssSrc:"css",
-                    apiSrc:"api",
-                    parentClassName:"hc-icons-32",
-                    baseName:'hc-icons-32',
-                    extend:`${BASE_IMAGES_DIR}/themes/default/hc-icons-32`
-                }))
+                glob(`${themeDir}/hc-icons*`,function(error,iconsArr){
+                    if(error)
+                        reject(error)
+                    iconsArr.forEach( iconDir => {
+                        let iconName = iconDir.substring(iconDir.lastIndexOf('/') + 1);
+                        chaosPromises.push(imageTool.genImages(iconDir,`${BASE_IMAGES_DIR}/dist/${theme}`,{
+                            imgSrc:`img/${iconName}`,
+                            cssSrc:"css",
+                            apiSrc:"api",
+                            parentClassName:iconName,
+                            baseName:iconName,
+                            extend:`${BASE_IMAGES_DIR}/themes/default/${iconName}`
+                        }))
+                    })
+                })
             })
             Promise.all(chaosPromises)
             .then(() => {
