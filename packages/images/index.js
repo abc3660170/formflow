@@ -1,7 +1,7 @@
 let path =  require('path');
 let Logger = require('js-logger')
 let glob = require('glob')
-let imageTool = require('./imageTool')
+let imageTool = require('../../cli-tools/sprite-images/imageTool')
 let fs = require('fs');
 
 Logger.useDefaults();
@@ -123,7 +123,7 @@ function entrance() {
                 reject(error)
             let cssString = "";
             files.forEach(file => {
-                cssString += `@import "${path.relative(BASE_IMAGES_DIR,file)}";\n`
+                cssString += `@import "${path.relative(BASE_IMAGES_DIR,file).replace(/\\/g,"/")}";\n`
             })
             fs.writeFile(`${BASE_IMAGES_DIR}/index.scss`,cssString,{encoding:"utf-8"},err => {
                 if(error)
@@ -133,7 +133,6 @@ function entrance() {
             })
         })
     })
-
 }
 
 

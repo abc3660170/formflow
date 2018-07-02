@@ -3,10 +3,11 @@ let glob = require('glob');
 let fs = require('fs');
 let path = require('path')
 let fsExtra = require('fs-extra');
-let Logger = require('js-logger')
-let mkdirp = require('mkdirp')
+let Logger = require('js-logger');
+let mkdirp = require('mkdirp');
 let tools = require("../commonTools");
 let handleBars = require('handleBars');
+let sass = require('node-sass');
 
 Logger.useDefaults();
 function genImages(inputFolder,outputFolder,options) {
@@ -23,6 +24,8 @@ function genImages(inputFolder,outputFolder,options) {
         HOVER_CLASS    = 'hc-hover',
         CURRENT_CLASS  = 'hc-current',
         DISABLED_CLASS = 'hc-disabled';
+
+    const ONE_STATE_SUFFIX = '-freeze';
 
     // find default state image exclude hover 、current、disabled
     let defaultFiles = [],
@@ -244,6 +247,7 @@ function genImages(inputFolder,outputFolder,options) {
             let relativeImagePath = path.relative(/(.+)\//.exec(cssOutputFile)[1],/(.+)\//.exec(defaultOutputImageFile)[1]).replace(/\\/g,'/');
             stylesheet += `/****** default hover current disable 4 state dest files ******/\n`;
             stylesheet += `.${options.parentClassName},\n`+
+                `.${options.parentClassName}${ONE_STATE_SUFFIX},\n`+
                 `.${DEFAULT_CLASS} .${options.parentClassName}{ \n`+
                 `    display:inline-block;\n `+
                 `   background-image:url("${relativeImagePath}/${defaultOutputImageName}");\n`+
@@ -267,7 +271,7 @@ function genImages(inputFolder,outputFolder,options) {
                 stylesheet += `/* source file: ${/themes\/(.+)/.exec(key)[1]} */\n`;
                 let ClassObject = stylesheetObj[key];
                 let className = /([^\/]+\/?[^\/]+)\./.exec(key)[1].replace(/\//g,'-');
-                stylesheet += `.${options.parentClassName}.${className} {width: ${ClassObject.width}px; height: ${ClassObject.height}px; background-position:-${ClassObject.x}px -${ClassObject.y}px; }\n\n`
+                stylesheet += `.${options.parentClassName}.${className},.${options.parentClassName}${ONE_STATE_SUFFIX}.${className} {width: ${ClassObject.width}px; height: ${ClassObject.height}px; background-position:-${ClassObject.x}px -${ClassObject.y}px; }\n\n`
             })
             mkdirp(/(.*)[\/\\]/.exec(cssOutputFile)[1],(error) => {
                 if(error)
@@ -275,8 +279,22 @@ function genImages(inputFolder,outputFolder,options) {
                 fs.writeFile(cssOutputFile,stylesheet,(error) => {
                     if(error)
                         return reject(error)
-                    resolve()
-                    Logger.log("scss 文件构建完成")
+                    let cssName = /(.+)\./.exec(cssOutputFile)[1];
+                    sass.render({
+                        file:cssOutputFile,
+                        outputStyle: 'nested',
+                        sourceMap: true
+                    },function(error,result){
+                        if(error)
+                            return reject(error)
+                        fs.writeFile(cssName+".css",result.css.toString(),{encoding:"utf8"},error => {
+                            if(error)
+                                return reject(error)
+                            resolve()
+                            Logger.log("scss 文件构建完成")
+                        })
+
+                    })
                 })
             })
         })
@@ -304,8 +322,22 @@ function genImages(inputFolder,outputFolder,options) {
                 fs.writeFile(cssOutputFile,stylesheet,(error) => {
                     if(error)
                         return reject(error)
-                    resolve()
-                    Logger.log("scss 文件构建完成")
+                    let cssName = /(.+)\./.exec(cssOutputFile)[1];
+                    sass.render({
+                        file:cssOutputFile,
+                        outputStyle: 'nested',
+                        sourceMap: true
+                    },function(error,result){
+                        if(error)
+                            return reject(error)
+                        fs.writeFile(cssName+".css",result.css.toString(),{encoding:"utf8"},error => {
+                            if(error)
+                                return reject(error)
+                            resolve()
+                            Logger.log("scss 文件构建完成")
+                        })
+
+                    })
                 })
             })
         })
