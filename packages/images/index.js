@@ -56,16 +56,19 @@ function chaos() {
  */
 function icons(){
     return new Promise((resolve,reject) => {
-        glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
-            let chaosPromises = [];
-            themesDirs.forEach(themeDir => {
-                let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
-                glob(`${themeDir}/hc-icons*`,function(error,iconsArr){
-                    if(error)
-                        reject(error)
-                    iconsArr.forEach( iconDir => {
+        let PromiseList = [];
+        glob(`${BASE_IMAGES_DIR}/themes/default/hc-icons*`,function(error,iconsDirsArr){
+            if(error)
+                return reject(error)
+            glob(`${BASE_IMAGES_DIR}/themes/*`,function(error,themesDirs){
+                if(error)
+                    return reject(error)
+                themesDirs.forEach(themeDir => {
+                    let theme = themeDir.substring(themeDir.lastIndexOf('/') + 1);
+                    iconsDirsArr.forEach( iconDir => {
+                        iconDir = iconDir.replace(/themes\/default/,`themes/${theme}`)
                         let iconName = iconDir.substring(iconDir.lastIndexOf('/') + 1);
-                        chaosPromises.push(imageTool.genImages(iconDir,`${BASE_IMAGES_DIR}/dist/${theme}`,{
+                        PromiseList.push(imageTool.genImages(iconDir,`${BASE_IMAGES_DIR}/dist/${theme}`,{
                             imgSrc:`img/${iconName}`,
                             cssSrc:"css",
                             apiSrc:"api",
@@ -73,16 +76,17 @@ function icons(){
                             baseName:iconName,
                             extend:`${BASE_IMAGES_DIR}/themes/default/${iconName}`
                         }))
+                        Promise.all(PromiseList)
+                        .then(() => {
+                            Logger.log("============= 公共图标库 流程结束！=============")
+                            resolve()
+                        })
+                        .catch(error => {
+                            return reject(error)
+                        })
                     })
                 })
-            })
-            Promise.all(chaosPromises)
-            .then(() => {
-                Logger.log("============= 公共图标库 流程结束！=============")
-                resolve()
-            })
-            .catch(error => {
-                reject(error)
+
             })
         })
     })

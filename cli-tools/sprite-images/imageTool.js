@@ -100,7 +100,7 @@ function genImages(inputFolder,outputFolder,options) {
             defaultFiles.forEach((imageDefault) => {
                 let imageDefaultName = imageDefault.substring(imageDefault.lastIndexOf('/') + 1);
                 // filename cant include : _ , uppercase char , more then one dot
-                if(/([_A-Z]|\..*\.)/.test(imageDefaultName))
+                if(/([_A-Z]|\..*\.|\+|\#|\~|\s+)/.test(imageDefaultName))
                     fileCheckerrorMsg.push(`${imageDefault}文件格式不对！`)
                 let noExtFile = /(.*)\./.exec(imageDefault)[1];
                 let ext = /\.(.+)/.exec(imageDefault)[1]
@@ -293,7 +293,6 @@ function genImages(inputFolder,outputFolder,options) {
                             resolve()
                             Logger.log("scss 文件构建完成")
                         })
-
                     })
                 })
             })
@@ -359,6 +358,7 @@ function genImages(inputFolder,outputFolder,options) {
                 classList:classList,
                 parentClassName:options.parentClassName,
                 cssUrl:cssUrl,
+                oneStateSuffix:ONE_STATE_SUFFIX,
                 stateClass:{
                     "default":DEFAULT_CLASS,
                     "hover":HOVER_CLASS,
