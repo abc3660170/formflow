@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "karma start karma.conf.js",
     "start:dev": "webpack-dev-server --config build/webpack.config.js  --hot --open chrome --mode development",
     "dev": "webpack --config build/webpack.config.js --mode development",
     "babel-cli": "babel src/Formflow.js -o fuck.js",
@@ -33,8 +33,12 @@
     "html-webpack-plugin": "^3.2.0",
     "jquery": "^1.7.2",
     "js-logger": "^1.4.1",
+    "karma": "^2.0.4",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-qunit": "^2.1.0",
     "node-glob": "^1.2.0",
     "node-sass": "^4.9.0",
+    "qunit": "^2.6.1",
     "rollup": "^0.59.3",
     "rollup-plugin-babel": "^3.0.4",
     "rollup-plugin-commonjs": "^9.1.3",
